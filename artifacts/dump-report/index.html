@@ -281,9 +281,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
           <h2>Thank you!</h2>
-          <p>Your report has been received. A City of San Jose crew will review it shortly. You can use the case number below to follow up.</p>
+          <p id="ack-message">Your report has been received.</p>
           <div class="case-num" id="case-number">SJ-000000</div>
-          <p style="font-size:14px;">We appreciate residents like you helping keep our neighborhoods clean and safe.</p>
           <button class="btn" onclick="resetAndHome()">Submit Another Report</button>
         </div>
         <p class="footer-note">For emergencies or hazardous spills, call 911 or San Jose 311.</p>
@@ -330,7 +329,11 @@
         }
       });
 
-      document.getElementById('report-form').addEventListener('submit', (e) => {
+      const form = document.getElementById('report-form');
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const ackEl = document.getElementById('ack-message');
+
+      form.addEventListener('submit', async (e) => {
         e.preventDefault();
         let valid = true;
 
@@ -345,9 +348,32 @@
 
         if (!valid) return;
 
+        const name = document.getElementById('name').value.trim();
+        const wasteType = document.getElementById('waste-type').value;
+        const description = desc.value.trim();
+
         const caseNum = 'SJ-' + Math.floor(100000 + Math.random() * 900000);
         document.getElementById('case-number').textContent = caseNum;
+        ackEl.textContent = 'Generating your acknowledgment…';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting…';
         goTo('done');
+
+        try {
+          const res = await fetch('/api/acknowledge', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, wasteType, description }),
+          });
+          if (!res.ok) throw new Error('Request failed');
+          const data = await res.json();
+          ackEl.textContent = data.message || 'Your report has been received. Thank you for helping keep San Jose clean.';
+        } catch (err) {
+          ackEl.textContent = 'Your report has been received. Thank you for helping keep San Jose clean.';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Report';
+        }
       });
     </script>
   </body>
