@@ -3,7 +3,9 @@ import OpenAI from "openai";
 
 const router: IRouter = Router();
 
-const client = new OpenAI({ apiKey: process.env["OPENAI_API_KEY"] });
+const client = new OpenAI({
+  apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
+});
 
 router.post("/acknowledge", async (req, res) => {
   const { name, wasteType, description } = req.body ?? {};
