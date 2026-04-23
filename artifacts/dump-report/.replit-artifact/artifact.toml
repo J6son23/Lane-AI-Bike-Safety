@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Report Illegal Dumping"
+version = "1.0.0"
+id = "artifacts/dump-report"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24411
+
+[services.development]
+run = "pnpm --filter @workspace/dump-report run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dump-report", "run", "build" ]
+publicDir = "artifacts/dump-report/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24411"
+BASE_PATH = "/"
