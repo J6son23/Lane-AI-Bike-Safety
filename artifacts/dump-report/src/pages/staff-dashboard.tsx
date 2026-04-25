@@ -6,11 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ChevronLeft,
   LogOut,
   RefreshCw,
   Loader2,
-  TrashIcon,
+  Trash2,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
@@ -102,6 +108,71 @@ function severityColor(s: unknown) {
   return "bg-gray-100 text-gray-600";
 }
 
+function CloseDropdown({
+  ids,
+  token,
+  onClosed,
+}: {
+  ids: string[];
+  token: string;
+  onClosed: () => void;
+}) {
+  const [closing, setClosing] = useState(false);
+
+  const handleClose = async (status: "resolved" | "unresolved") => {
+    setClosing(true);
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch("/api/staff/close-report", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id, status }),
+          }),
+        ),
+      );
+      onClosed();
+    } finally {
+      setClosing(false);
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          disabled={closing}
+          className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+          title="Close report"
+        >
+          {closing ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Trash2 className="w-4 h-4" />
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          className="text-green-700 focus:text-green-700 focus:bg-green-50 cursor-pointer"
+          onClick={() => handleClose("resolved")}
+        >
+          Closed and Resolved
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+          onClick={() => handleClose("unresolved")}
+        >
+          Closed and Unresolved
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function BooleanBadge({ value, label }: { value: unknown; label: string }) {
   if (value === null || value === undefined) return null;
   return (
@@ -160,11 +231,20 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
   );
 }
 
-function DumpingGroupCard({ group }: { group: LocationGroup }) {
+function DumpingGroupCard({
+  group,
+  token,
+  onClose,
+}: {
+  group: LocationGroup;
+  token: string;
+  onClose: (ids: string[]) => void;
+}) {
   const [stackOpen, setStackOpen] = useState(false);
   const isStacked = group.reports.length > 1;
   const primary = group.reports[0];
   const rest = group.reports.slice(1);
+  const allIds = group.reports.map((r) => r.id);
 
   return (
     <Card className="border-l-4 border-l-emerald-500">
@@ -172,7 +252,7 @@ function DumpingGroupCard({ group }: { group: LocationGroup }) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-              <TrashIcon className="w-3 h-3" /> Illegal Dumping
+              <Trash2 className="w-3 h-3" /> Illegal Dumping
             </span>
             {isStacked && (
               <button
@@ -185,9 +265,10 @@ function DumpingGroupCard({ group }: { group: LocationGroup }) {
               </button>
             )}
           </div>
-          <span className="text-xs text-gray-400 flex-shrink-0">
-            {formatDate(primary.createdAt)}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-gray-400">{formatDate(primary.createdAt)}</span>
+            <CloseDropdown ids={allIds} token={token} onClosed={() => onClose(allIds)} />
+          </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
       </CardHeader>
@@ -265,7 +346,7 @@ function TUrgencyBar({ score }: { score: number | null }) {
   );
 }
 
-function HazardCard({ r, token }: { r: HazardReport; token: string }) {
+function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onClose: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
   const [dispatching, setDispatching] = useState(false);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
@@ -353,9 +434,10 @@ function HazardCard({ r, token }: { r: HazardReport; token: string }) {
               </span>
             )}
           </div>
-          <span className="text-xs text-gray-400 flex-shrink-0">
-            {formatDate(r.createdAt)}
-          </span>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-gray-400">{formatDate(r.createdAt)}</span>
+            <CloseDropdown ids={[r.id]} token={token} onClosed={() => onClose(r.id)} />
+          </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{r.hazardType}</p>
       </CardHeader>
@@ -653,9 +735,23 @@ export default function StaffDashboard() {
             </div>
             {listItems.map((item) =>
               item.kind === "group" ? (
-                <DumpingGroupCard key={item.group.key} group={item.group} />
+                <DumpingGroupCard
+                  key={item.group.key}
+                  group={item.group}
+                  token={token}
+                  onClose={(ids) =>
+                    setReports((prev) => prev.filter((r) => !ids.includes(r.id)))
+                  }
+                />
               ) : (
-                <HazardCard key={item.report.id} r={item.report} token={token} />
+                <HazardCard
+                  key={item.report.id}
+                  r={item.report}
+                  token={token}
+                  onClose={(id) =>
+                    setReports((prev) => prev.filter((r) => r.id !== id))
+                  }
+                />
               ),
             )}
           </div>

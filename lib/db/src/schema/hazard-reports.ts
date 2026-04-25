@@ -9,6 +9,7 @@ export const hazardReportsTable = pgTable("hazard_reports", {
   imageBase64: text("image_base64"),
   dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
   dispatchedTo: text("dispatched_to"),
+  closedStatus: text("closed_status"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

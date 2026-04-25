@@ -11,6 +11,7 @@ export const dumpingReportsTable = pgTable("dumping_reports", {
   description: text("description").notNull(),
   ackMessage: text("ack_message"),
   photoBase64: text("photo_base64"),
+  closedStatus: text("closed_status"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

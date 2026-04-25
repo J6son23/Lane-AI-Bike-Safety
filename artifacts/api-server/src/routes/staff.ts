@@ -1,6 +1,6 @@
 import { Router, type IRouter, type RequestHandler } from "express";
 import { db, dumpingReportsTable, hazardReportsTable } from "@workspace/db";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -71,6 +71,39 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to fetch staff reports");
     res.status(500).json({ error: "Failed to fetch reports" });
+  }
+});
+
+router.post("/staff/close-report", requireAuth, async (req, res) => {
+  const { id, status } = req.body ?? {};
+  if (!id || !["resolved", "unresolved"].includes(status)) {
+    res.status(400).json({ error: "id and status (resolved|unresolved) are required" });
+    return;
+  }
+
+  const closedStatus = status === "resolved" ? "Closed and Resolved" : "Closed and Unresolved";
+
+  try {
+    if (typeof id === "string" && id.startsWith("dumping-")) {
+      const numericId = Number(id.slice("dumping-".length));
+      await db
+        .update(dumpingReportsTable)
+        .set({ closedStatus })
+        .where(eq(dumpingReportsTable.id, numericId));
+    } else if (typeof id === "string" && id.startsWith("hazard-")) {
+      const numericId = Number(id.slice("hazard-".length));
+      await db
+        .update(hazardReportsTable)
+        .set({ closedStatus })
+        .where(eq(hazardReportsTable.id, numericId));
+    } else {
+      res.status(400).json({ error: "Invalid report id format" });
+      return;
+    }
+    res.json({ ok: true, closedStatus });
+  } catch (err) {
+    req.log.error({ err }, "Failed to close report");
+    res.status(500).json({ error: "Failed to close report" });
   }
 });
 
