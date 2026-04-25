@@ -45,11 +45,9 @@ const uploadMiddleware: RequestHandler = (req, res, next) => {
   });
 };
 
-const TRIAGE_PROMPT = (hazardType: string) => `
+const TRIAGE_PROMPT = () => `
 You are a bike lane safety triage assistant for a city transportation department.
 Analyze the provided image of a reported bike lane hazard and return a structured JSON triage report.
-
-The reported hazard type is: "${hazardType}"
 
 Return ONLY a valid JSON object with exactly these fields (no markdown, no extra text):
 {
@@ -87,15 +85,8 @@ Guidelines:
 const MAX_IMAGE_STORE_BYTES = 5 * 1024 * 1024;
 
 router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
-  const { hazard_type } = req.body ?? {};
-
   if (!req.file) {
     res.status(400).json({ error: "image is required" });
-    return;
-  }
-
-  if (typeof hazard_type !== "string" || !hazard_type.trim()) {
-    res.status(400).json({ error: "hazard_type is required" });
     return;
   }
 
@@ -112,7 +103,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
           content: [
             {
               type: "text",
-              text: TRIAGE_PROMPT(hazard_type),
+              text: TRIAGE_PROMPT(),
             },
             {
               type: "image_url",
@@ -158,7 +149,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
       const inserted = await db
         .insert(hazardReportsTable)
         .values({
-          hazardType: hazard_type.trim(),
+          hazardType: validated.data.hazard_type ?? "Unknown",
           triageData: validated.data as Record<string, unknown>,
           imageBase64: storedImage,
         })

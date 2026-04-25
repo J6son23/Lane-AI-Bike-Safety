@@ -3,13 +3,6 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,18 +18,6 @@ import {
   Send,
 } from "lucide-react";
 
-const HAZARD_TYPES = [
-  "Abandoned vehicle",
-  "Construction debris",
-  "Fallen tree or branch",
-  "Flooding or standing water",
-  "Gravel or loose materials",
-  "Illegal parking",
-  "Pothole or road damage",
-  "Signage obstruction",
-  "Trash or garbage",
-  "Other",
-];
 
 interface TriageReport {
   _report_id: number | null;
@@ -147,7 +128,6 @@ function UrgencyBar({ score }: { score: number | null }) {
 
 export default function HazardTriage() {
   const [, navigate] = useLocation();
-  const [hazardType, setHazardType] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -199,7 +179,6 @@ export default function HazardTriage() {
 
     const formData = new FormData();
     formData.append("image", imageFile);
-    formData.append("hazard_type", hazardType);
 
     try {
       const response = await fetch(`/api/analyze-hazard`, {
@@ -284,7 +263,7 @@ export default function HazardTriage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const canSubmit = !!imageFile && !!hazardType && !loading;
+  const canSubmit = !!imageFile && !loading;
   const canDispatch =
     !!report && !!report.recommended_department && !dispatched && !dispatching;
 
@@ -313,24 +292,6 @@ export default function HazardTriage() {
             <CardTitle className="text-base">Submit Hazard for Analysis</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Hazard Type <span className="text-red-500">*</span>
-              </label>
-              <Select value={hazardType} onValueChange={setHazardType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select hazard type…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {HAZARD_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">
                 Hazard Image <span className="text-red-500">*</span>
