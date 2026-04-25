@@ -1,0 +1,29 @@
+AI Image Auto-Classification on Upload
+What & Why
+The hazard triage form currently shows a hazard type dropdown and an "Analyze" button that blocks submission. The goal is to hide the hazard type field from the user entirely and make it optional for submission. When a photo is uploaded, the AI classifies it automatically and sets the hazard type in the background — no user action required.
+
+Done looks like
+The hazard type dropdown is hidden from the form — users never see or interact with it
+Hazard type is optional on submission — the form is never blocked waiting for it
+The "Analyze" button is removed
+Uploading a photo immediately and automatically triggers AI classification in the background
+A subtle "Analyzing…" indicator is shown while the AI is working
+Once the AI responds, hazard type and severity are quietly stored in form state and included in the submission
+If AI classification fails or times out, the form still submits without a hazard type (or defaults to "Other")
+Out of scope
+Showing the detected hazard type to the user
+Letting the user manually pick or override the hazard type
+Changes to the illegal dumping form
+Steps
+Hide hazard type and remove the Analyze button — Remove the hazard type dropdown and the Analyze button from the visible form UI. Remove hazard type from any required-field validation so it never blocks submission.
+
+Make hazard type optional in the schema and backend — Ensure the API and database accept a submission where hazard type is absent or null without returning a validation error.
+
+Auto-trigger AI classification on image upload — When a photo is selected, immediately call the AI vision endpoint. Show an "Analyzing…" indicator while waiting. On success, write the returned hazardType and severity into form state. On failure, proceed without them.
+
+Update the AI endpoint response contract — The AI vision route should return a structured JSON with hazardType (one of the fixed hazard type strings) and severity (low / medium / high / unknown), always matching valid values.
+
+Relevant files
+artifacts/dump-report/src/pages/hazard-triage.tsx
+artifacts/api-server/src/routes/analyze-hazard.ts
+lib/api-zod/src/generated/types/hazardTriageReportLikelySeverity.ts
