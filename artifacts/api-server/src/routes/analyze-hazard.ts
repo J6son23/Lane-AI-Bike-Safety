@@ -153,17 +153,22 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
         ? `data:${mimeType};base64,${base64Image}`
         : null;
 
+    let reportId: number | null = null;
     try {
-      await db.insert(hazardReportsTable).values({
-        hazardType: hazard_type.trim(),
-        triageData: validated.data as Record<string, unknown>,
-        imageBase64: storedImage,
-      });
+      const inserted = await db
+        .insert(hazardReportsTable)
+        .values({
+          hazardType: hazard_type.trim(),
+          triageData: validated.data as Record<string, unknown>,
+          imageBase64: storedImage,
+        })
+        .returning({ id: hazardReportsTable.id });
+      reportId = inserted[0]?.id ?? null;
     } catch (err) {
       req.log.error({ err }, "Failed to save hazard report to DB");
     }
 
-    res.json(validated.data);
+    res.json({ ...validated.data, _report_id: reportId });
   } catch (err) {
     req.log.error({ err }, "OpenAI hazard analysis failed");
     res.status(502).json({ error: "Failed to analyze hazard image" });

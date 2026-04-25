@@ -22,6 +22,7 @@ import {
   Clipboard,
   ClipboardCheck,
   ChevronLeft,
+  Send,
 } from "lucide-react";
 
 const HAZARD_TYPES = [
@@ -38,6 +39,7 @@ const HAZARD_TYPES = [
 ];
 
 interface TriageReport {
+  _report_id: number | null;
   hazard_type: string | null;
   obstruction_detected: boolean | null;
   likely_severity: string | null;
@@ -153,6 +155,10 @@ export default function HazardTriage() {
   const [error, setError] = useState<string | null>(null);
   const [report, setReport] = useState<TriageReport | null>(null);
   const [copied, setCopied] = useState(false);
+  const [dispatching, setDispatching] = useState(false);
+  const [dispatched, setDispatched] = useState(false);
+  const [dispatchDbMarked, setDispatchDbMarked] = useState(false);
+  const [dispatchError, setDispatchError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = (file: File) => {
@@ -187,6 +193,9 @@ export default function HazardTriage() {
     setLoading(true);
     setError(null);
     setReport(null);
+    setDispatched(false);
+    setDispatchDbMarked(false);
+    setDispatchError(null);
 
     const formData = new FormData();
     formData.append("image", imageFile);
@@ -216,6 +225,58 @@ export default function HazardTriage() {
     }
   };
 
+  const handleDispatch = async () => {
+    if (!report || dispatching || dispatched) return;
+
+    setDispatching(true);
+    setDispatchError(null);
+
+    const token = localStorage.getItem("staff_token") ?? "";
+
+    try {
+      const response = await fetch(`/api/dispatch-report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          report_id: report._report_id,
+          department: report.recommended_department,
+          description: report.description,
+          urgency_score: report.urgency_score,
+          recommended_action: report.recommended_action,
+          severity: report.likely_severity,
+          hazard_type: report.hazard_type,
+        }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        const msg = (body as { error?: string }).error;
+        if (response.status === 401) {
+          throw new Error(
+            "You must be logged in as staff to dispatch reports. Please log in and try again.",
+          );
+        }
+        throw new Error(msg ?? `Server error: ${response.status}`);
+      }
+
+      const result = (await response.json()) as {
+        ok: boolean;
+        db_marked?: boolean;
+      };
+      setDispatched(true);
+      setDispatchDbMarked(result.db_marked === true);
+    } catch (err) {
+      setDispatchError(
+        err instanceof Error ? err.message : "Failed to dispatch report.",
+      );
+    } finally {
+      setDispatching(false);
+    }
+  };
+
   const handleCopy = () => {
     if (!report) return;
     navigator.clipboard.writeText(JSON.stringify(report, null, 2));
@@ -224,6 +285,8 @@ export default function HazardTriage() {
   };
 
   const canSubmit = !!imageFile && !!hazardType && !loading;
+  const canDispatch =
+    !!report && !!report.recommended_department && !dispatched && !dispatching;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
@@ -476,6 +539,48 @@ export default function HazardTriage() {
               </div>
 
               <Separator />
+
+              {report.recommended_department ? (
+                <div className="space-y-2">
+                  {dispatched ? (
+                    <Alert className="border-green-400 bg-green-50 text-green-800">
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <AlertTitle className="font-semibold">Dispatched</AlertTitle>
+                      <AlertDescription className="text-sm">
+                        Email notification sent to <strong>{report.recommended_department}</strong>.
+                        {dispatchDbMarked && " Report marked as dispatched in the system."}
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <>
+                      {dispatchError && (
+                        <Alert variant="destructive">
+                          <AlertTriangle className="h-4 w-4" />
+                          <AlertTitle>Dispatch Failed</AlertTitle>
+                          <AlertDescription>{dispatchError}</AlertDescription>
+                        </Alert>
+                      )}
+                      <Button
+                        onClick={handleDispatch}
+                        disabled={!canDispatch}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        {dispatching ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Sending to {report.recommended_department}…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-4 w-4" />
+                            Send to {report.recommended_department}
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : null}
 
               <details className="group">
                 <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 select-none">

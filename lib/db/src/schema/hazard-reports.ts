@@ -7,6 +7,8 @@ export const hazardReportsTable = pgTable("hazard_reports", {
   hazardType: text("hazard_type").notNull(),
   triageData: jsonb("triage_data").notNull(),
   imageBase64: text("image_base64"),
+  dispatchedAt: timestamp("dispatched_at", { withTimezone: true }),
+  dispatchedTo: text("dispatched_to"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
