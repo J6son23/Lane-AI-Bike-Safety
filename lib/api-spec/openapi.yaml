@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: hazard
+    description: Bike lane hazard triage operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /analyze-hazard:
+    post:
+      operationId: analyzeHazard
+      tags: [hazard]
+      summary: Analyze a bike lane hazard image
+      description: Accepts an image and hazard type, returns a structured AI triage report
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - image
+                - hazard_type
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: The hazard image file
+                hazard_type:
+                  type: string
+                  description: The type of hazard being reported
+      responses:
+        "200":
+          description: Triage report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HazardTriageReport"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: AI analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +77,77 @@ components:
           type: string
       required:
         - status
-
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    HazardTriageReport:
+      type: object
+      properties:
+        hazard_type:
+          type: string
+          nullable: true
+        obstruction_detected:
+          type: boolean
+          nullable: true
+        likely_severity:
+          type: string
+          nullable: true
+          enum: [low, medium, high, unknown]
+          description: "Severity level of the hazard"
+        urgency_score:
+          type: integer
+          nullable: true
+          minimum: 1
+          maximum: 10
+          description: "1-10 urgency scale (1 = very low, 10 = immediate danger)"
+        description:
+          type: string
+          nullable: true
+        lane_blocked:
+          type: boolean
+          nullable: true
+        immediate_risk_to_cyclists:
+          type: boolean
+          nullable: true
+        visible_vehicle:
+          type: boolean
+          nullable: true
+        visible_debris:
+          type: boolean
+          nullable: true
+        recommended_department:
+          type: string
+          nullable: true
+        recommended_action:
+          type: string
+          nullable: true
+        privacy_flags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        confidence_notes:
+          type: string
+          nullable: true
+        human_review_required:
+          type: boolean
+          nullable: true
+      required:
+        - hazard_type
+        - obstruction_detected
+        - likely_severity
+        - urgency_score
+        - description
+        - lane_blocked
+        - immediate_risk_to_cyclists
+        - visible_vehicle
+        - visible_debris
+        - recommended_department
+        - recommended_action
+        - privacy_flags
+        - confidence_notes
+        - human_review_required

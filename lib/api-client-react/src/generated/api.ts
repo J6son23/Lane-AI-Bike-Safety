@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  AnalyzeHazardBody,
+  ErrorResponse,
+  HazardTriageReport,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,93 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Accepts an image and hazard type, returns a structured AI triage report
+ * @summary Analyze a bike lane hazard image
+ */
+export const getAnalyzeHazardUrl = () => {
+  return `/api/analyze-hazard`;
+};
+
+export const analyzeHazard = async (
+  analyzeHazardBody: AnalyzeHazardBody,
+  options?: RequestInit,
+): Promise<HazardTriageReport> => {
+  const formData = new FormData();
+  formData.append(`image`, analyzeHazardBody.image);
+  formData.append(`hazard_type`, analyzeHazardBody.hazard_type);
+
+  return customFetch<HazardTriageReport>(getAnalyzeHazardUrl(), {
+    ...options,
+    method: "POST",
+    body: formData,
+  });
+};
+
+export const getAnalyzeHazardMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeHazard>>,
+    TError,
+    { data: BodyType<AnalyzeHazardBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof analyzeHazard>>,
+  TError,
+  { data: BodyType<AnalyzeHazardBody> },
+  TContext
+> => {
+  const mutationKey = ["analyzeHazard"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof analyzeHazard>>,
+    { data: BodyType<AnalyzeHazardBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return analyzeHazard(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AnalyzeHazardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof analyzeHazard>>
+>;
+export type AnalyzeHazardMutationBody = BodyType<AnalyzeHazardBody>;
+export type AnalyzeHazardMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Analyze a bike lane hazard image
+ */
+export const useAnalyzeHazard = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeHazard>>,
+    TError,
+    { data: BodyType<AnalyzeHazardBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof analyzeHazard>>,
+  TError,
+  { data: BodyType<AnalyzeHazardBody> },
+  TContext
+> => {
+  return useMutation(getAnalyzeHazardMutationOptions(options));
+};

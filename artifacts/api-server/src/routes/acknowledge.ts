@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import OpenAI from "openai";
+import { db, dumpingReportsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -7,8 +8,11 @@ const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
 });
 
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
 router.post("/acknowledge", async (req, res) => {
-  const { name, wasteType, description } = req.body ?? {};
+  const { name, wasteType, description, location, caseNumber, photoBase64 } =
+    req.body ?? {};
 
   if (typeof description !== "string" || !description.trim()) {
     res.status(400).json({ error: "description is required" });
@@ -21,6 +25,7 @@ router.post("/acknowledge", async (req, res) => {
     `Description: ${description}`,
   ].join("\n");
 
+  let message = "";
   try {
     const completion = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -36,12 +41,41 @@ router.post("/acknowledge", async (req, res) => {
       ],
     });
 
-    const message = completion.choices[0]?.message?.content?.trim() ?? "";
-    res.json({ message });
+    message = completion.choices[0]?.message?.content?.trim() ?? "";
   } catch (err) {
     req.log.error({ err }, "OpenAI acknowledgment failed");
     res.status(502).json({ error: "Failed to generate acknowledgment" });
+    return;
   }
+
+  if (
+    typeof location === "string" &&
+    location.trim() &&
+    typeof caseNumber === "string" &&
+    caseNumber.trim()
+  ) {
+    try {
+      const storedPhoto =
+        typeof photoBase64 === "string" &&
+        Buffer.byteLength(photoBase64, "utf8") <= MAX_PHOTO_BYTES
+          ? photoBase64
+          : null;
+
+      await db.insert(dumpingReportsTable).values({
+        caseNumber: caseNumber.trim(),
+        reporterName: typeof name === "string" && name.trim() ? name.trim() : null,
+        location: location.trim(),
+        wasteType: typeof wasteType === "string" ? wasteType : "Unspecified",
+        description: description.trim(),
+        ackMessage: message,
+        photoBase64: storedPhoto,
+      });
+    } catch (err) {
+      req.log.error({ err }, "Failed to save dumping report to DB");
+    }
+  }
+
+  res.json({ message });
 });
 
 export default router;

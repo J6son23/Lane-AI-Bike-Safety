@@ -14,3 +14,39 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Accepts an image and hazard type, returns a structured AI triage report
+ * @summary Analyze a bike lane hazard image
+ */
+export const AnalyzeHazardBody = zod.object({
+  image: zod.instanceof(File).describe("The hazard image file"),
+  hazard_type: zod.string().describe("The type of hazard being reported"),
+});
+
+export const analyzeHazardResponseUrgencyScoreMax = 10;
+
+export const AnalyzeHazardResponse = zod.object({
+  hazard_type: zod.string().nullable(),
+  obstruction_detected: zod.boolean().nullable(),
+  likely_severity: zod
+    .enum(["low", "medium", "high", "unknown"])
+    .nullable()
+    .describe("Severity level of the hazard"),
+  urgency_score: zod
+    .number()
+    .min(1)
+    .max(analyzeHazardResponseUrgencyScoreMax)
+    .nullable()
+    .describe("1-10 urgency scale (1 = very low, 10 = immediate danger)"),
+  description: zod.string().nullable(),
+  lane_blocked: zod.boolean().nullable(),
+  immediate_risk_to_cyclists: zod.boolean().nullable(),
+  visible_vehicle: zod.boolean().nullable(),
+  visible_debris: zod.boolean().nullable(),
+  recommended_department: zod.string().nullable(),
+  recommended_action: zod.string().nullable(),
+  privacy_flags: zod.array(zod.string()).nullable(),
+  confidence_notes: zod.string().nullable(),
+  human_review_required: zod.boolean().nullable(),
+});

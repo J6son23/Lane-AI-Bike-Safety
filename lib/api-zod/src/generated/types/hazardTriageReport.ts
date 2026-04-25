@@ -5,27 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface ErrorResponse {
-  error: string;
-}
-
-/**
- * Severity level of the hazard
- */
-export type HazardTriageReportLikelySeverity =
-  | (typeof HazardTriageReportLikelySeverity)[keyof typeof HazardTriageReportLikelySeverity]
-  | null;
-
-export const HazardTriageReportLikelySeverity = {
-  low: "low",
-  medium: "medium",
-  high: "high",
-  unknown: "unknown",
-} as const;
+import type { HazardTriageReportLikelySeverity } from "./hazardTriageReportLikelySeverity";
 
 export interface HazardTriageReport {
   hazard_type: string | null;
@@ -49,10 +29,3 @@ export interface HazardTriageReport {
   confidence_notes: string | null;
   human_review_required: boolean | null;
 }
-
-export type AnalyzeHazardBody = {
-  /** The hazard image file */
-  image: Blob;
-  /** The type of hazard being reported */
-  hazard_type: string;
-};

@@ -6,4 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./analyzeHazardBody";
+export * from "./errorResponse";
+export * from "./hazardTriageReport";
+export * from "./hazardTriageReportLikelySeverity";
 export * from "./healthStatus";
