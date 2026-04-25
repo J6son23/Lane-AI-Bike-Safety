@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import {
   ChevronLeft,
   LogOut,
@@ -13,6 +15,8 @@ import {
   ChevronDown,
   ChevronUp,
   Layers,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 type DumpingReport = {
@@ -202,6 +206,65 @@ function DumpingGroupCard({ group }: { group: LocationGroup }) {
   );
 }
 
+function TBoolField({ label, value }: { label: string; value: boolean | null }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-sm text-gray-600">{label}</span>
+      {value === null || value === undefined ? (
+        <span className="text-sm text-gray-400 italic">Unknown</span>
+      ) : value ? (
+        <span className="flex items-center gap-1 text-sm font-medium text-red-600">
+          <CheckCircle2 className="h-3.5 w-3.5" /> Yes
+        </span>
+      ) : (
+        <span className="flex items-center gap-1 text-sm font-medium text-green-600">
+          <XCircle className="h-3.5 w-3.5" /> No
+        </span>
+      )}
+    </div>
+  );
+}
+
+function TTextField({ label, value }: { label: string; value: string | null }) {
+  return (
+    <div className="py-1.5">
+      <span className="text-sm font-medium text-gray-700">{label}</span>
+      <p className="mt-0.5 text-sm text-gray-600">
+        {value ?? <span className="italic text-gray-400">Not determined</span>}
+      </p>
+    </div>
+  );
+}
+
+function TSeverityBadge({ severity }: { severity: string | null }) {
+  if (!severity) return <span className="text-sm text-gray-400 italic">Unknown</span>;
+  const colors: Record<string, string> = {
+    low: "bg-green-100 text-green-800",
+    medium: "bg-yellow-100 text-yellow-800",
+    high: "bg-red-100 text-red-800",
+    unknown: "bg-gray-100 text-gray-600",
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${colors[severity.toLowerCase()] ?? "bg-gray-100 text-gray-600"}`}>
+      {severity}
+    </span>
+  );
+}
+
+function TUrgencyBar({ score }: { score: number | null }) {
+  if (score === null) return <span className="text-sm text-gray-400 italic">Unknown</span>;
+  const pct = (score / 10) * 100;
+  const color = score >= 8 ? "bg-red-500" : score >= 5 ? "bg-yellow-500" : "bg-green-500";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex-1 rounded-full bg-gray-200 h-2">
+        <div className={`h-2 rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-sm font-semibold text-gray-700 w-8 text-right">{score}/10</span>
+    </div>
+  );
+}
+
 function HazardCard({ r, token }: { r: HazardReport; token: string }) {
   const [expanded, setExpanded] = useState(false);
   const [dispatching, setDispatching] = useState(false);
@@ -363,9 +426,98 @@ function HazardCard({ r, token }: { r: HazardReport; token: string }) {
           Full triage data
         </button>
         {expanded && (
-          <pre className="text-xs bg-gray-50 border border-gray-200 rounded-lg p-3 overflow-auto max-h-60 text-gray-700">
-            {JSON.stringify(r.triageData, null, 2)}
-          </pre>
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 space-y-3">
+            {/* Human review alert */}
+            <Alert
+              className={
+                humanReview === true
+                  ? "border-red-400 bg-red-50 text-red-800"
+                  : humanReview === false
+                    ? "border-green-400 bg-green-50 text-green-800"
+                    : "border-gray-300 bg-gray-50 text-gray-700"
+              }
+            >
+              <AlertTriangle className={`h-4 w-4 ${humanReview === true ? "text-red-600" : humanReview === false ? "text-green-600" : "text-gray-500"}`} />
+              <AlertTitle className="font-bold text-sm">
+                {humanReview === null ? "Human Review: Undetermined" : humanReview ? "⚠ Human Review Required" : "Human Review Not Required"}
+              </AlertTitle>
+              <AlertDescription className="text-xs">
+                {humanReview === null
+                  ? "The AI could not determine whether human review is required."
+                  : humanReview
+                    ? "This report has been flagged and must be reviewed by a staff member."
+                    : "AI analysis did not flag this report for mandatory human review."}
+              </AlertDescription>
+            </Alert>
+
+            {/* Hazard type badge */}
+            <div className="flex items-center gap-3 py-1 px-3 rounded-lg bg-white border border-gray-200">
+              <span className="text-xs font-semibold text-gray-600 shrink-0">Hazard Type</span>
+              {(t["hazard_type"] as string | null) ? (
+                <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-xs font-semibold text-indigo-800">
+                  {t["hazard_type"] as string}
+                </span>
+              ) : (
+                <span className="text-xs italic text-gray-400">Not determined</span>
+              )}
+            </div>
+
+            {/* Severity + Urgency */}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <div>
+                <span className="text-xs font-medium text-gray-700">Severity</span>
+                <div className="mt-1"><TSeverityBadge severity={severity} /></div>
+              </div>
+              <div>
+                <span className="text-xs font-medium text-gray-700">Urgency Score</span>
+                <div className="mt-1"><TUrgencyBar score={urgency} /></div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Bool fields */}
+            <div className="divide-y divide-gray-100">
+              <TBoolField label="Obstruction Detected" value={t["obstruction_detected"] as boolean | null} />
+              <TBoolField label="Lane Blocked" value={laneBlocked} />
+              <TBoolField label="Immediate Risk to Cyclists" value={riskToCyclists} />
+              <TBoolField label="Visible Vehicle" value={t["visible_vehicle"] as boolean | null} />
+              <TBoolField label="Visible Debris" value={t["visible_debris"] as boolean | null} />
+            </div>
+
+            <Separator />
+
+            {/* Text fields */}
+            <TTextField label="Description" value={desc} />
+            <TTextField label="Recommended Department" value={dept} />
+            <TTextField label="Recommended Action" value={action} />
+            <TTextField label="Confidence Notes" value={t["confidence_notes"] as string | null} />
+
+            {/* Privacy flags */}
+            {(() => {
+              const flags = t["privacy_flags"] as string[] | null;
+              return (
+                <div className="py-1.5">
+                  <span className="text-sm font-medium text-gray-700">Privacy Flags</span>
+                  {flags === null ? (
+                    <p className="mt-0.5 text-xs italic text-gray-400">Unknown</p>
+                  ) : flags.length === 0 ? (
+                    <div className="mt-1 flex items-center gap-1.5 text-xs text-green-700">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> No privacy flags detected
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {flags.map((flag) => (
+                        <Badge key={flag} variant="outline" className="border-orange-300 text-orange-700 bg-orange-50 text-xs">
+                          {flag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
         )}
       </CardContent>
     </Card>
