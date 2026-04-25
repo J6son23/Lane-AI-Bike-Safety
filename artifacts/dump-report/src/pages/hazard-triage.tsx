@@ -168,7 +168,7 @@ export default function HazardTriage() {
   const onDragLeave = () => setIsDragging(false);
 
   const handleSubmit = async () => {
-    if (!imageFile || !hazardType) return;
+    if (!imageFile) return;
 
     setLoading(true);
     setError(null);
@@ -435,14 +435,18 @@ export default function HazardTriage() {
                 </AlertDescription>
               </Alert>
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                <div className="col-span-2">
-                  <span className="text-sm font-medium text-gray-700">Hazard Type</span>
-                  <p className="text-sm text-gray-900 mt-0.5">
-                    {report.hazard_type ?? <span className="italic text-gray-400">Unknown</span>}
-                  </p>
-                </div>
+              <div className="flex items-center gap-3 py-1 px-3 rounded-lg bg-gray-50 border border-gray-200">
+                <span className="text-sm font-semibold text-gray-600 shrink-0">Hazard Type</span>
+                {report.hazard_type ? (
+                  <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-sm font-semibold text-indigo-800">
+                    {report.hazard_type}
+                  </span>
+                ) : (
+                  <span className="text-sm italic text-gray-400">Not determined</span>
+                )}
+              </div>
 
+              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
                 <div>
                   <span className="text-sm font-medium text-gray-700">Severity</span>
                   <div className="mt-1">

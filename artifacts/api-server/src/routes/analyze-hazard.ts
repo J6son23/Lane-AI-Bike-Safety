@@ -45,13 +45,26 @@ const uploadMiddleware: RequestHandler = (req, res, next) => {
   });
 };
 
+const HAZARD_CATEGORIES = [
+  "Abandoned vehicle",
+  "Construction debris",
+  "Fallen tree or branch",
+  "Flooding or standing water",
+  "Gravel or loose materials",
+  "Illegal parking",
+  "Pothole or road damage",
+  "Signage obstruction",
+  "Trash or garbage",
+  "Other",
+] as const;
+
 const TRIAGE_PROMPT = () => `
 You are a bike lane safety triage assistant for a city transportation department.
 Analyze the provided image of a reported bike lane hazard and return a structured JSON triage report.
 
 Return ONLY a valid JSON object with exactly these fields (no markdown, no extra text):
 {
-  "hazard_type": string or null,
+  "hazard_type": one of: ${HAZARD_CATEGORIES.map((c) => `"${c}"`).join(" | ")} — choose the closest match based on what you see in the image,
   "obstruction_detected": boolean or null,
   "likely_severity": "low" | "medium" | "high" | "unknown" | null,
   "urgency_score": integer 1-10 or null,
