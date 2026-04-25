@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  Layers,
 } from "lucide-react";
 
 type DumpingReport = {
@@ -37,6 +38,46 @@ type HazardReport = {
 };
 
 type Report = DumpingReport | HazardReport;
+
+/** Normalize a location string for comparison */
+function normalizeLocation(loc: string): string[] {
+  return loc
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3);
+}
+
+/** Returns true if two location strings are "near" each other (share ≥2 meaningful tokens) */
+function locationsMatch(a: string, b: string): boolean {
+  const tokensA = new Set(normalizeLocation(a));
+  const tokensB = new Set(normalizeLocation(b));
+  let shared = 0;
+  for (const t of tokensA) {
+    if (tokensB.has(t)) shared++;
+  }
+  return shared >= 2;
+}
+
+type LocationGroup = {
+  key: string;
+  location: string;
+  reports: DumpingReport[];
+};
+
+/** Group dumping reports by similar location */
+function groupByLocation(reports: DumpingReport[]): LocationGroup[] {
+  const groups: LocationGroup[] = [];
+  for (const r of reports) {
+    const existing = groups.find((g) => locationsMatch(g.location, r.location));
+    if (existing) {
+      existing.reports.push(r);
+    } else {
+      groups.push({ key: r.id, location: r.location, reports: [r] });
+    }
+  }
+  return groups;
+}
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString(undefined, {
@@ -66,8 +107,59 @@ function BooleanBadge({ value, label }: { value: unknown; label: string }) {
   );
 }
 
-function DumpingCard({ r }: { r: DumpingReport }) {
+function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  return (
+    <div className={nested ? "border-t border-gray-100 pt-3 mt-3" : ""}>
+      <div className="flex items-start justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-mono text-sm font-bold text-gray-700">{r.caseNumber}</span>
+          <Badge variant="outline">{r.wasteType}</Badge>
+          {r.reporterName && (
+            <span className="text-xs text-gray-500">by {r.reporterName}</span>
+          )}
+        </div>
+        <span className="text-xs text-gray-400 flex-shrink-0">{formatDate(r.createdAt)}</span>
+      </div>
+      {nested && (
+        <p className="text-xs text-gray-500 mt-0.5">{r.location}</p>
+      )}
+      <p className="text-sm text-gray-700 leading-relaxed mt-1">{r.description}</p>
+
+      {r.photoBase64 && (
+        <img
+          src={r.photoBase64}
+          alt="Report photo"
+          className="max-h-40 w-full object-contain rounded-lg border border-gray-200 bg-gray-50 mt-2"
+        />
+      )}
+
+      {r.ackMessage && (
+        <div className="mt-2">
+          <button
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            onClick={() => setExpanded((p) => !p)}
+          >
+            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            Resident acknowledgment
+          </button>
+          {expanded && (
+            <p className="mt-1 text-sm text-gray-600 italic pl-4 border-l-2 border-gray-200">
+              {r.ackMessage}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DumpingGroupCard({ group }: { group: LocationGroup }) {
+  const [stackOpen, setStackOpen] = useState(false);
+  const isStacked = group.reports.length > 1;
+  const primary = group.reports[0];
+  const rest = group.reports.slice(1);
+
   return (
     <Card className="border-l-4 border-l-emerald-500">
       <CardHeader className="pb-2">
@@ -76,51 +168,31 @@ function DumpingCard({ r }: { r: DumpingReport }) {
             <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
               <TrashIcon className="w-3 h-3" /> Illegal Dumping
             </span>
-            <span className="font-mono text-sm font-bold text-gray-700">
-              {r.caseNumber}
-            </span>
+            {isStacked && (
+              <button
+                onClick={() => setStackOpen((p) => !p)}
+                className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full hover:bg-amber-100 transition-colors"
+              >
+                <Layers className="w-3 h-3" />
+                +{rest.length} more at this location
+                {stackOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+            )}
           </div>
           <span className="text-xs text-gray-400 flex-shrink-0">
-            {formatDate(r.createdAt)}
+            {formatDate(primary.createdAt)}
           </span>
         </div>
-        <p className="text-sm font-medium text-gray-800 mt-1">{r.location}</p>
+        <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-2 text-xs">
-          <Badge variant="outline">{r.wasteType}</Badge>
-          {r.reporterName && (
-            <span className="text-gray-500">Reported by {r.reporterName}</span>
-          )}
-        </div>
-        <p className="text-sm text-gray-700 leading-relaxed">{r.description}</p>
+        <DumpingReportRow r={primary} />
 
-        {r.photoBase64 && (
-          <img
-            src={r.photoBase64}
-            alt="Report photo"
-            className="max-h-48 w-full object-contain rounded-lg border border-gray-200 bg-gray-50"
-          />
-        )}
-
-        {r.ackMessage && (
-          <div>
-            <button
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-              onClick={() => setExpanded((p) => !p)}
-            >
-              {expanded ? (
-                <ChevronUp className="w-3 h-3" />
-              ) : (
-                <ChevronDown className="w-3 h-3" />
-              )}
-              Resident acknowledgment
-            </button>
-            {expanded && (
-              <p className="mt-1 text-sm text-gray-600 italic pl-4 border-l-2 border-gray-200">
-                {r.ackMessage}
-              </p>
-            )}
+        {isStacked && stackOpen && (
+          <div className="bg-gray-50 rounded-lg p-3 space-y-0">
+            {rest.map((r) => (
+              <DumpingReportRow key={r.id} r={r} nested />
+            ))}
           </div>
         )}
       </CardContent>
@@ -161,9 +233,7 @@ function HazardCard({ r }: { r: HazardReport }) {
             {formatDate(r.createdAt)}
           </span>
         </div>
-        <p className="text-sm font-medium text-gray-800 mt-1">
-          {r.hazardType}
-        </p>
+        <p className="text-sm font-medium text-gray-800 mt-1">{r.hazardType}</p>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
@@ -176,9 +246,7 @@ function HazardCard({ r }: { r: HazardReport }) {
           )}
         </div>
 
-        {desc && (
-          <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>
-        )}
+        {desc && <p className="text-sm text-gray-700 leading-relaxed">{desc}</p>}
 
         {r.imageBase64 && (
           <img
@@ -207,11 +275,7 @@ function HazardCard({ r }: { r: HazardReport }) {
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
           onClick={() => setExpanded((p) => !p)}
         >
-          {expanded ? (
-            <ChevronUp className="w-3 h-3" />
-          ) : (
-            <ChevronDown className="w-3 h-3" />
-          )}
+          {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           Full triage data
         </button>
         {expanded && (
@@ -267,6 +331,31 @@ export default function StaffDashboard() {
     navigate("/");
   };
 
+  const dumpingReports = reports.filter((r): r is DumpingReport => r.type === "dumping");
+  const hazardReports = reports.filter((r): r is HazardReport => r.type === "hazard");
+  const locationGroups = groupByLocation(dumpingReports);
+
+  // Build interleaved list: each group or hazard report has a createdAt for sorting
+  type ListItem =
+    | { kind: "group"; group: LocationGroup; createdAt: string }
+    | { kind: "hazard"; report: HazardReport; createdAt: string };
+
+  const listItems: ListItem[] = [
+    ...locationGroups.map((g) => ({
+      kind: "group" as const,
+      group: g,
+      createdAt: g.reports[0].createdAt,
+    })),
+    ...hazardReports.map((r) => ({
+      kind: "hazard" as const,
+      report: r,
+      createdAt: r.createdAt,
+    })),
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const totalCount = reports.length;
+  const stackedCount = dumpingReports.length - locationGroups.length;
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-2xl mx-auto space-y-5">
@@ -278,12 +367,7 @@ export default function StaffDashboard() {
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchReports}
-              disabled={loading}
-            >
+            <Button variant="outline" size="sm" onClick={fetchReports} disabled={loading}>
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
             </Button>
@@ -315,22 +399,27 @@ export default function StaffDashboard() {
         {!loading && !error && reports.length === 0 && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-lg font-medium">No reports yet</p>
-            <p className="text-sm mt-1">
-              Reports will appear here after residents and staff submit them.
-            </p>
+            <p className="text-sm mt-1">Reports will appear here after residents and staff submit them.</p>
           </div>
         )}
 
         {!loading && reports.length > 0 && (
           <div className="space-y-4">
-            <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">
-              {reports.length} report{reports.length !== 1 ? "s" : ""}
-            </p>
-            {reports.map((r) =>
-              r.type === "dumping" ? (
-                <DumpingCard key={r.id} r={r} />
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-gray-400 uppercase tracking-wide font-semibold">
+                {totalCount} report{totalCount !== 1 ? "s" : ""}
+              </p>
+              {stackedCount > 0 && (
+                <p className="text-xs text-amber-600 font-medium">
+                  {stackedCount} stacked at shared locations
+                </p>
+              )}
+            </div>
+            {listItems.map((item) =>
+              item.kind === "group" ? (
+                <DumpingGroupCard key={item.group.key} group={item.group} />
               ) : (
-                <HazardCard key={r.id} r={r} />
+                <HazardCard key={item.report.id} r={item.report} />
               ),
             )}
           </div>
