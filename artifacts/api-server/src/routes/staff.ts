@@ -57,6 +57,8 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       hazardType: r.hazardType,
       triageData: r.triageData,
       imageBase64: r.imageBase64,
+      dispatchedAt: r.dispatchedAt,
+      dispatchedTo: r.dispatchedTo,
       createdAt: r.createdAt,
     }));
 

@@ -34,6 +34,8 @@ type HazardReport = {
   hazardType: string;
   triageData: Record<string, unknown>;
   imageBase64: string | null;
+  dispatchedAt: string | null;
+  dispatchedTo: string | null;
   createdAt: string;
 };
 
@@ -212,6 +214,8 @@ function HazardCard({ r }: { r: HazardReport }) {
   const laneBlocked = t["lane_blocked"] as boolean | null;
   const riskToCyclists = t["immediate_risk_to_cyclists"] as boolean | null;
 
+  const isDispatched = Boolean(r.dispatchedAt);
+
   return (
     <Card className="border-l-4 border-l-blue-500">
       <CardHeader className="pb-2">
@@ -226,6 +230,15 @@ function HazardCard({ r }: { r: HazardReport }) {
             {urgency !== null && (
               <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full font-medium">
                 Urgency {urgency}/10
+              </span>
+            )}
+            {isDispatched ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">
+                Dispatched{r.dispatchedTo ? ` · ${r.dispatchedTo}` : ""}{r.dispatchedAt ? ` · ${formatDate(r.dispatchedAt)}` : ""}
+              </span>
+            ) : (
+              <span className="inline-flex items-center text-xs font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                Pending
               </span>
             )}
           </div>
