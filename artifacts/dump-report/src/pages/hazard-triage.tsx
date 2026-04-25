@@ -377,184 +377,46 @@ export default function HazardTriage() {
           </CardContent>
         </Card>
 
-        {report && (
+        {report && report.recommended_department && (
           <Card className="border-gray-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base">Triage Report</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  className="gap-1.5"
-                >
-                  {copied ? (
-                    <>
-                      <ClipboardCheck className="h-3.5 w-3.5" /> Copied
-                    </>
-                  ) : (
-                    <>
-                      <Clipboard className="h-3.5 w-3.5" /> Copy JSON
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert
-                className={
-                  report.human_review_required === true
-                    ? "border-red-400 bg-red-50 text-red-800"
-                    : report.human_review_required === false
-                      ? "border-green-400 bg-green-50 text-green-800"
-                      : "border-gray-300 bg-gray-50 text-gray-700"
-                }
-              >
-                <AlertTriangle
-                  className={`h-4 w-4 ${
-                    report.human_review_required === true
-                      ? "text-red-600"
-                      : report.human_review_required === false
-                        ? "text-green-600"
-                        : "text-gray-500"
-                  }`}
-                />
-                <AlertTitle className="font-bold">
-                  {report.human_review_required === null
-                    ? "Human Review: Undetermined"
-                    : report.human_review_required
-                      ? "⚠ Human Review Required"
-                      : "Human Review Not Required"}
-                </AlertTitle>
-                <AlertDescription className="text-sm">
-                  {report.human_review_required === null
-                    ? "The AI could not determine whether human review is required. Treat this report with caution and consider manual review."
-                    : report.human_review_required
-                      ? "This report has been flagged and must be reviewed by a staff member before action is taken."
-                      : "AI analysis did not flag this report for mandatory human review."}
-                </AlertDescription>
-              </Alert>
-
-              <div className="flex items-center gap-3 py-1 px-3 rounded-lg bg-gray-50 border border-gray-200">
-                <span className="text-sm font-semibold text-gray-600 shrink-0">Hazard Type</span>
-                {report.hazard_type ? (
-                  <span className="inline-flex items-center rounded-full bg-indigo-50 border border-indigo-200 px-3 py-1 text-sm font-semibold text-indigo-800">
-                    {report.hazard_type}
-                  </span>
-                ) : (
-                  <span className="text-sm italic text-gray-400">Not determined</span>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Severity</span>
-                  <div className="mt-1">
-                    <SeverityBadge severity={report.likely_severity} />
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-sm font-medium text-gray-700">Urgency Score</span>
-                  <div className="mt-1">
-                    <UrgencyBar score={report.urgency_score} />
-                  </div>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="space-y-0.5 divide-y divide-gray-100">
-                <BoolField label="Obstruction Detected" value={report.obstruction_detected} />
-                <BoolField label="Lane Blocked" value={report.lane_blocked} />
-                <BoolField label="Immediate Risk to Cyclists" value={report.immediate_risk_to_cyclists} />
-                <BoolField label="Visible Vehicle" value={report.visible_vehicle} />
-                <BoolField label="Visible Debris" value={report.visible_debris} />
-              </div>
-
-              <Separator />
-
-              <TextField label="Description" value={report.description} />
-              <TextField label="Recommended Department" value={report.recommended_department} />
-              <TextField label="Recommended Action" value={report.recommended_action} />
-              <TextField label="Confidence Notes" value={report.confidence_notes} />
-
-              <div>
-                <span className="text-sm font-medium text-gray-700">Privacy Flags</span>
-                {report.privacy_flags === null ? (
-                  <p className="mt-0.5 text-sm italic text-gray-400">Unknown</p>
-                ) : report.privacy_flags.length === 0 ? (
-                  <div className="mt-1.5 flex items-center gap-1.5 text-sm text-green-700">
-                    <CheckCircle2 className="h-4 w-4" />
-                    No privacy flags detected
-                  </div>
-                ) : (
-                  <div className="mt-1.5 flex flex-wrap gap-1.5">
-                    {report.privacy_flags.map((flag) => (
-                      <Badge
-                        key={flag}
-                        variant="outline"
-                        className="border-orange-300 text-orange-700 bg-orange-50"
-                      >
-                        {flag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              {report.recommended_department ? (
-                <div className="space-y-2">
-                  {dispatched ? (
-                    <Alert className="border-green-400 bg-green-50 text-green-800">
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                      <AlertTitle className="font-semibold">Dispatched</AlertTitle>
-                      <AlertDescription className="text-sm">
-                        Email notification sent to <strong>{report.recommended_department}</strong>.
-                        {dispatchDbMarked && " Report marked as dispatched in the system."}
-                      </AlertDescription>
+            <CardContent className="pt-5 space-y-3">
+              {dispatched ? (
+                <Alert className="border-green-400 bg-green-50 text-green-800">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertTitle className="font-semibold">Dispatched</AlertTitle>
+                  <AlertDescription className="text-sm">
+                    Email notification sent to <strong>{report.recommended_department}</strong>.
+                    {dispatchDbMarked && " Report marked as dispatched in the system."}
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <>
+                  {dispatchError && (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Dispatch Failed</AlertTitle>
+                      <AlertDescription>{dispatchError}</AlertDescription>
                     </Alert>
-                  ) : (
-                    <>
-                      {dispatchError && (
-                        <Alert variant="destructive">
-                          <AlertTriangle className="h-4 w-4" />
-                          <AlertTitle>Dispatch Failed</AlertTitle>
-                          <AlertDescription>{dispatchError}</AlertDescription>
-                        </Alert>
-                      )}
-                      <Button
-                        onClick={handleDispatch}
-                        disabled={!canDispatch}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                      >
-                        {dispatching ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Sending to {report.recommended_department}…
-                          </>
-                        ) : (
-                          <>
-                            <Send className="mr-2 h-4 w-4" />
-                            Send to {report.recommended_department}
-                          </>
-                        )}
-                      </Button>
-                    </>
                   )}
-                </div>
-              ) : null}
-
-              <details className="group">
-                <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700 select-none">
-                  View raw JSON
-                </summary>
-                <pre className="mt-2 overflow-x-auto rounded bg-gray-900 p-3 text-xs text-green-300">
-                  {JSON.stringify(report, null, 2)}
-                </pre>
-              </details>
+                  <Button
+                    onClick={handleDispatch}
+                    disabled={!canDispatch}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {dispatching ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending to {report.recommended_department}…
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send to {report.recommended_department}
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         )}
