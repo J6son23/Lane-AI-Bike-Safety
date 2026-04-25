@@ -202,8 +202,19 @@ function DumpingGroupCard({ group }: { group: LocationGroup }) {
   );
 }
 
-function HazardCard({ r }: { r: HazardReport }) {
+function HazardCard({ r, token }: { r: HazardReport; token: string }) {
   const [expanded, setExpanded] = useState(false);
+  const [dispatching, setDispatching] = useState(false);
+  const [dispatchError, setDispatchError] = useState<string | null>(null);
+  const [localDispatched, setLocalDispatched] = useState<{
+    at: string;
+    to: string | null;
+  } | null>(
+    r.dispatchedAt
+      ? { at: r.dispatchedAt, to: r.dispatchedTo ?? null }
+      : null,
+  );
+
   const t = r.triageData;
   const severity = t["likely_severity"] as string | null;
   const urgency = t["urgency_score"] as number | null;
@@ -214,7 +225,44 @@ function HazardCard({ r }: { r: HazardReport }) {
   const laneBlocked = t["lane_blocked"] as boolean | null;
   const riskToCyclists = t["immediate_risk_to_cyclists"] as boolean | null;
 
-  const isDispatched = Boolean(r.dispatchedAt);
+  const isDispatched = Boolean(localDispatched);
+
+  const handleDispatch = async () => {
+    if (!dept) return;
+    setDispatching(true);
+    setDispatchError(null);
+    const numericId = r.id.startsWith("hazard-")
+      ? Number(r.id.slice("hazard-".length))
+      : null;
+    try {
+      const res = await fetch("/api/dispatch-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          report_id: numericId,
+          department: dept,
+          hazard_type: r.hazardType,
+          description: desc,
+          urgency_score: urgency,
+          recommended_action: action,
+          severity,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setDispatchError(data.error ?? "Dispatch failed");
+      } else {
+        setLocalDispatched({ at: new Date().toISOString(), to: dept });
+      }
+    } catch {
+      setDispatchError("Network error — please try again.");
+    } finally {
+      setDispatching(false);
+    }
+  };
 
   return (
     <Card className="border-l-4 border-l-blue-500">
@@ -234,7 +282,7 @@ function HazardCard({ r }: { r: HazardReport }) {
             )}
             {isDispatched ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold bg-green-50 text-green-700 px-2 py-0.5 rounded-full">
-                Dispatched{r.dispatchedTo ? ` · ${r.dispatchedTo}` : ""}{r.dispatchedAt ? ` · ${formatDate(r.dispatchedAt)}` : ""}
+                Dispatched{localDispatched?.to ? ` · ${localDispatched.to}` : ""}{localDispatched?.at ? ` · ${formatDate(localDispatched.at)}` : ""}
               </span>
             ) : (
               <span className="inline-flex items-center text-xs font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
@@ -280,6 +328,29 @@ function HazardCard({ r }: { r: HazardReport }) {
               <p className="text-gray-600">
                 <span className="font-medium">Recommended action:</span> {action}
               </p>
+            )}
+          </div>
+        )}
+
+        {!isDispatched && dept && (
+          <div className="space-y-1">
+            <Button
+              size="sm"
+              onClick={handleDispatch}
+              disabled={dispatching}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {dispatching ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Dispatching…
+                </>
+              ) : (
+                `Send to ${dept}`
+              )}
+            </Button>
+            {dispatchError && (
+              <p className="text-xs text-red-600">{dispatchError}</p>
             )}
           </div>
         )}
@@ -432,7 +503,7 @@ export default function StaffDashboard() {
               item.kind === "group" ? (
                 <DumpingGroupCard key={item.group.key} group={item.group} />
               ) : (
-                <HazardCard key={item.report.id} r={item.report} />
+                <HazardCard key={item.report.id} r={item.report} token={token} />
               ),
             )}
           </div>
