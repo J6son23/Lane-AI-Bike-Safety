@@ -159,12 +159,18 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
 
     let reportId: number | null = null;
     try {
+      const location =
+        typeof req.body?.location === "string" && req.body.location.trim()
+          ? req.body.location.trim()
+          : null;
+
       const inserted = await db
         .insert(hazardReportsTable)
         .values({
           hazardType: validated.data.hazard_type ?? "Unknown",
           triageData: validated.data as Record<string, unknown>,
           imageBase64: storedImage,
+          location,
         })
         .returning({ id: hazardReportsTable.id });
       reportId = inserted[0]?.id ?? null;

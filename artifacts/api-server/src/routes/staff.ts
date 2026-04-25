@@ -55,6 +55,7 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       id: `hazard-${r.id}`,
       type: "hazard" as const,
       hazardType: r.hazardType,
+      location: r.location ?? null,
       triageData: r.triageData,
       imageBase64: r.imageBase64,
       dispatchedAt: r.dispatchedAt,

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   ClipboardCheck,
   ChevronLeft,
   Send,
+  MapPin,
 } from "lucide-react";
 
 
@@ -140,6 +141,47 @@ export default function HazardTriage() {
   const [dispatchDbMarked, setDispatchDbMarked] = useState(false);
   const [dispatchError, setDispatchError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [location, setLocation] = useState("");
+  const [locationInput, setLocationInput] = useState("");
+  const [suggestions, setSuggestions] = useState<{ display_name: string; place_id: number }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [fetchingSuggestions, setFetchingSuggestions] = useState(false);
+  const suggestionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (suggestionRef.current && !suggestionRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  useEffect(() => {
+    if (locationInput.trim().length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setFetchingSuggestions(true);
+      try {
+        const query = encodeURIComponent(`${locationInput}, San Jose, CA`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1&limit=5&countrycodes=us`,
+          { headers: { "Accept-Language": "en" } },
+        );
+        const data = await res.json();
+        setSuggestions(data.slice(0, 5));
+        setShowSuggestions(true);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setFetchingSuggestions(false);
+      }
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [locationInput]);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -179,6 +221,7 @@ export default function HazardTriage() {
 
     const formData = new FormData();
     formData.append("image", imageFile);
+    if (location.trim()) formData.append("location", location.trim());
 
     try {
       const response = await fetch(`/api/analyze-hazard`, {
@@ -292,6 +335,52 @@ export default function HazardTriage() {
             <CardTitle className="text-base">Submit Hazard for Analysis</CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Address autocomplete */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700">
+                Hazard Location
+              </label>
+              <div className="relative" ref={suggestionRef}>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={locationInput}
+                    onChange={(e) => {
+                      setLocationInput(e.target.value);
+                      setLocation(e.target.value);
+                      if (!e.target.value.trim()) setShowSuggestions(false);
+                    }}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    placeholder="Type a street address in San Jose…"
+                    className="w-full rounded-md border border-gray-300 bg-white pl-9 pr-9 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  {fetchingSuggestions && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+                  )}
+                </div>
+                {showSuggestions && suggestions.length > 0 && (
+                  <ul className="absolute z-50 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg max-h-52 overflow-auto">
+                    {suggestions.map((s) => (
+                      <li
+                        key={s.place_id}
+                        className="flex items-start gap-2 px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 transition-colors"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setLocationInput(s.display_name);
+                          setLocation(s.display_name);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <MapPin className="h-3.5 w-3.5 text-gray-400 mt-0.5 shrink-0" />
+                        <span className="text-gray-700 leading-snug">{s.display_name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700">
                 Hazard Image <span className="text-red-500">*</span>
