@@ -13,9 +13,11 @@ const StrictAnalyzeHazardResponse = AnalyzeHazardResponse.extend({
 
 const router: IRouter = Router();
 
-const client = new OpenAI({
-  apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
-});
+function getClient() {
+  return new OpenAI({
+    apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
+  });
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -111,7 +113,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
   const mimeType = req.file.mimetype;
 
   try {
-    const completion = await client.chat.completions.create({
+    const completion = await getClient().chat.completions.create({
       model: "gpt-4o",
       max_tokens: 1024,
       messages: [
