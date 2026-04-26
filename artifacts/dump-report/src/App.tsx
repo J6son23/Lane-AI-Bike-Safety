@@ -12,7 +12,7 @@ import StaffDashboard from "@/pages/staff-dashboard";
 import { useState, useEffect, useRef } from "react";
 import { ShieldCheck, Lock } from "lucide-react";
 
-const PASSCODE = "1234";
+const PASSCODE = "2978";
 const STORAGE_KEY = "app_access_granted";
 
 function PasscodeGate({ children }: { children: React.ReactNode }) {
