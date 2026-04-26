@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { TrashIcon, ChevronLeft, CheckCircle2, Loader2, MapPin } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
@@ -9,6 +9,109 @@ type Screen = "welcome" | "form" | "done";
 interface FormErrors {
   location?: string;
   description?: string;
+}
+
+interface Suggestion {
+  place_id: number;
+  display_name: string;
+}
+
+function shortenAddress(full: string): string {
+  const parts = full.split(",").map((p) => p.trim());
+  return parts.slice(0, 3).join(", ");
+}
+
+function LocationAutocomplete({
+  value,
+  onChange,
+  error,
+  placeholder,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  error?: string;
+  placeholder: string;
+}) {
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fetchSuggestions = useCallback(async (q: string) => {
+    if (q.length < 3) { setSuggestions([]); setOpen(false); return; }
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      const data: Suggestion[] = await res.json();
+      setSuggestions(data);
+      setOpen(data.length > 0);
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    onChange(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchSuggestions(val), 350);
+  };
+
+  const handleSelect = (s: Suggestion) => {
+    onChange(shortenAddress(s.display_name));
+    setSuggestions([]);
+    setOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10 pointer-events-none" />
+      {loading && (
+        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 animate-spin z-10 pointer-events-none" />
+      )}
+      <input
+        type="text"
+        value={value}
+        onChange={handleInput}
+        onFocus={() => suggestions.length > 0 && setOpen(true)}
+        placeholder={placeholder}
+        autoComplete="off"
+        className={`w-full pl-9 pr-8 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-300 bg-gray-50 ${
+          error ? "border-red-400" : "border-gray-200"
+        }`}
+      />
+
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden max-h-52 overflow-y-auto">
+          {suggestions.map((s) => (
+            <li
+              key={s.place_id}
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(s); }}
+              className="flex items-start gap-2.5 px-3 py-2.5 cursor-pointer hover:bg-green-50 transition-colors border-b border-gray-50 last:border-0"
+            >
+              <MapPin className="w-3.5 h-3.5 mt-0.5 text-green-600 flex-shrink-0" />
+              <span className="text-sm text-gray-700 leading-snug">
+                {shortenAddress(s.display_name)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 export default function ReportDumping() {
@@ -132,24 +235,20 @@ export default function ReportDumping() {
                   />
                 </div>
 
-                {/* Location */}
+                {/* Location with autocomplete */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
                     {t("dumping_location_label")}
                   </label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      value={location}
-                      onChange={(e) => {
-                        setLocation(e.target.value);
-                        if (e.target.value.trim()) setErrors((p) => ({ ...p, location: undefined }));
-                      }}
-                      placeholder={t("dumping_location_placeholder")}
-                      className={`w-full pl-9 pr-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-300 bg-gray-50 ${errors.location ? "border-red-400" : "border-gray-200"}`}
-                    />
-                  </div>
+                  <LocationAutocomplete
+                    value={location}
+                    onChange={(val) => {
+                      setLocation(val);
+                      if (val.trim()) setErrors((p) => ({ ...p, location: undefined }));
+                    }}
+                    error={errors.location}
+                    placeholder={t("dumping_location_placeholder")}
+                  />
                   {errors.location && <p className="text-xs text-red-500">{errors.location}</p>}
                 </div>
 
