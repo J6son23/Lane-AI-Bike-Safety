@@ -108,4 +108,24 @@ router.post("/staff/close-report", requireAuth, async (req, res) => {
   }
 });
 
+router.delete("/staff/delete-report/:id", requireAuth, async (req, res) => {
+  const id = String(req.params["id"] ?? "");
+  try {
+    if (id.startsWith("dumping-")) {
+      const numericId = Number(id.slice("dumping-".length));
+      await db.delete(dumpingReportsTable).where(eq(dumpingReportsTable.id, numericId));
+    } else if (id.startsWith("hazard-")) {
+      const numericId = Number(id.slice("hazard-".length));
+      await db.delete(hazardReportsTable).where(eq(hazardReportsTable.id, numericId));
+    } else {
+      res.status(400).json({ error: "Invalid report id format" });
+      return;
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete report");
+    res.status(500).json({ error: "Failed to delete report" });
+  }
+});
+
 export default router;

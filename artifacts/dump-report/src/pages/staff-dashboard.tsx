@@ -6,17 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   ChevronLeft,
   LogOut,
   RefreshCw,
   Loader2,
-  Trash2,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
@@ -111,19 +104,36 @@ function severityColor(s: unknown) {
   return "bg-gray-100 text-gray-600";
 }
 
-function CloseDropdown({
+function ActionButtons({
   ids,
   token,
-  onClosed,
+  onDone,
 }: {
   ids: string[];
   token: string;
-  onClosed: () => void;
+  onDone: () => void;
 }) {
-  const [closing, setClosing] = useState(false);
+  const [busy, setBusy] = useState<"resolved" | "unresolved" | null>(null);
 
-  const handleClose = async (status: "resolved" | "unresolved") => {
-    setClosing(true);
+  const handleResolved = async () => {
+    setBusy("resolved");
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/staff/delete-report/${encodeURIComponent(id)}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ),
+      );
+      onDone();
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleUnresolved = async () => {
+    setBusy("unresolved");
     try {
       await Promise.all(
         ids.map((id) =>
@@ -133,46 +143,35 @@ function CloseDropdown({
               "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ id, status }),
+            body: JSON.stringify({ id, status: "unresolved" }),
           }),
         ),
       );
-      onClosed();
+      onDone();
     } finally {
-      setClosing(false);
+      setBusy(null);
     }
   };
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          disabled={closing}
-          className="p-1 rounded text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-          title="Close report"
-        >
-          {closing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Trash2 className="w-4 h-4" />
-          )}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          className="text-green-700 focus:text-green-700 focus:bg-green-50 cursor-pointer"
-          onClick={() => handleClose("resolved")}
-        >
-          Closed and Resolved
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
-          onClick={() => handleClose("unresolved")}
-        >
-          Closed and Unresolved
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-2 mt-1.5">
+      <button
+        onClick={handleResolved}
+        disabled={busy !== null}
+        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+      >
+        {busy === "resolved" ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+        Resolved
+      </button>
+      <button
+        onClick={handleUnresolved}
+        disabled={busy !== null}
+        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+      >
+        {busy === "unresolved" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
+        Unresolved
+      </button>
+    </div>
   );
 }
 
@@ -272,9 +271,9 @@ function DumpingGroupCard({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(primary.createdAt)}</span>
-            <CloseDropdown ids={allIds} token={token} onClosed={() => onClose(allIds)} />
+            <ActionButtons ids={allIds} token={token} onDone={() => onClose(allIds)} />
           </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
@@ -441,9 +440,9 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(r.createdAt)}</span>
-            <CloseDropdown ids={[r.id]} token={token} onClosed={() => onClose(r.id)} />
+            <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} />
           </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{r.hazardType}</p>
