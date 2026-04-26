@@ -5,9 +5,7 @@ import { db, dumpingReportsTable } from "@workspace/db";
 const router: IRouter = Router();
 
 function getClient() {
-  return new OpenAI({
-    apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
-  });
+  return new OpenAI();
 }
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;

@@ -14,9 +14,7 @@ const StrictAnalyzeHazardResponse = AnalyzeHazardResponse.extend({
 const router: IRouter = Router();
 
 function getClient() {
-  return new OpenAI({
-    apiKey: process.env["OPENAI_API_KEY1"] ?? process.env["OPENAI_API_KEY"],
-  });
+  return new OpenAI();
 }
 
 const upload = multer({
