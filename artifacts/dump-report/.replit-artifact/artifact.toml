@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "Report Illegal Dumping"
+title = "Bike Lane Report"
 version = "1.0.0"
 id = "artifacts/dump-report"
 router = "path"
