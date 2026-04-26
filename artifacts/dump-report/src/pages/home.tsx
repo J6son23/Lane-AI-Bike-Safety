@@ -11,7 +11,15 @@ export default function Home() {
     <div className="min-h-screen px-4 py-8" style={{ backgroundColor: "#edf4ed" }}>
       <div className="relative w-full max-w-sm mx-auto">
 
-        <div className="absolute top-0 right-0">
+        {/* Top-right: Staff icon + Language selector */}
+        <div className="absolute top-0 right-0 flex items-center gap-2">
+          <button
+            onClick={() => navigate("/staff/login")}
+            title={t("home_staff_title")}
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-white shadow-sm hover:shadow-md transition-all"
+          >
+            <ShieldCheck className="w-4 h-4" style={{ color: "#2d6a2d" }} />
+          </button>
           <LanguageSelector />
         </div>
 
@@ -58,19 +66,6 @@ export default function Home() {
             <div>
               <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_analyze_title")}</div>
               <div className="text-xs text-gray-500 mt-0.5">{t("home_analyze_desc")}</div>
-            </div>
-          </button>
-
-          <button
-            onClick={() => navigate("/staff/login")}
-            className="w-full flex items-center gap-4 bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-all"
-          >
-            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
-              <ShieldCheck className="w-5 h-5" style={{ color: "#2d6a2d" }} />
-            </div>
-            <div>
-              <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_staff_title")}</div>
-              <div className="text-xs text-gray-500 mt-0.5">{t("home_staff_desc")}</div>
             </div>
           </button>
         </div>

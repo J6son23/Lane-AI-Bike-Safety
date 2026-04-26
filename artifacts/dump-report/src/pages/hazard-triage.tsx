@@ -118,6 +118,8 @@ export default function HazardTriage() {
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith("image/")) return;
     setImageFile(file);
+    setReport(null);
+    setError(null);
     const reader = new FileReader();
     reader.onload = (e) => setImagePreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -171,13 +173,8 @@ export default function HazardTriage() {
           <p className="text-gray-500 text-sm">{t("hazard_success_msg")}</p>
           <button
             onClick={() => {
-              setSubmitted(false);
-              setReport(null);
-              setImageFile(null);
-              setImagePreview(null);
-              setLocation("");
-              setLocationInput("");
-              setDescription("");
+              setSubmitted(false); setReport(null); setImageFile(null);
+              setImagePreview(null); setLocation(""); setLocationInput(""); setDescription("");
             }}
             className="w-full py-3 rounded-xl font-semibold text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: "#1a4a1a" }}
@@ -304,10 +301,7 @@ export default function HazardTriage() {
                           {editedIssue || report.hazard_type}
                         </span>
                       )}
-                      <button
-                        onClick={() => setEditingIssue(true)}
-                        className="text-gray-400 hover:text-gray-600 transition-colors"
-                      >
+                      <button onClick={() => setEditingIssue(true)} className="text-gray-400 hover:text-gray-600 transition-colors">
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -321,10 +315,7 @@ export default function HazardTriage() {
                     <span className="text-xs font-bold text-gray-700">{confidencePct}%</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-2 rounded-full transition-all"
-                      style={{ width: `${confidencePct}%`, backgroundColor: "#2d6a2d" }}
-                    />
+                    <div className="h-2 rounded-full transition-all" style={{ width: `${confidencePct}%`, backgroundColor: "#2d6a2d" }} />
                   </div>
                 </div>
 
@@ -347,10 +338,11 @@ export default function HazardTriage() {
           )}
         </div>
 
-        {report && !loading && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4 mb-4">
-            <div className="space-y-1.5" ref={suggestionRef}>
-              <label className="block text-sm font-semibold text-gray-800">
+        {/* Location — appears as soon as an image is selected */}
+        {imageFile && (
+          <div className="bg-white rounded-2xl shadow-sm p-4 mb-3" ref={suggestionRef}>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
                 {t("hazard_location_required")}
               </label>
               <div className="relative">
@@ -358,10 +350,7 @@ export default function HazardTriage() {
                 <input
                   type="text"
                   value={locationInput}
-                  onChange={(e) => {
-                    setLocationInput(e.target.value);
-                    setLocation(e.target.value);
-                  }}
+                  onChange={(e) => { setLocationInput(e.target.value); setLocation(e.target.value); }}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                   placeholder={t("hazard_location_placeholder")}
                   className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-300 bg-gray-50"
@@ -377,9 +366,7 @@ export default function HazardTriage() {
                       key={s.place_id}
                       onMouseDown={() => {
                         const short = s.display_name.split(",").slice(0, 3).join(",");
-                        setLocationInput(short);
-                        setLocation(short);
-                        setShowSuggestions(false);
+                        setLocationInput(short); setLocation(short); setShowSuggestions(false);
                       }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 last:border-0 truncate"
                     >
@@ -389,9 +376,14 @@ export default function HazardTriage() {
                 </div>
               )}
             </div>
+          </div>
+        )}
 
+        {/* Description + Submit — only after AI results are ready */}
+        {report && !loading && (
+          <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4 mb-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-semibold text-gray-800">
+              <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
                 {t("hazard_desc_label")}{" "}
                 <span className="font-normal text-gray-400">{t("hazard_desc_optional")}</span>
               </label>
@@ -404,9 +396,7 @@ export default function HazardTriage() {
               />
             </div>
 
-            {submitError && (
-              <p className="text-sm text-red-600">{submitError}</p>
-            )}
+            {submitError && <p className="text-sm text-red-600">{submitError}</p>}
 
             <button
               onClick={handleSubmit}

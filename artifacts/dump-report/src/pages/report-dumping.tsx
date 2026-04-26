@@ -1,31 +1,8 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useLocation } from "wouter";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  TrashIcon,
-  ChevronLeft,
-  Upload,
-  CheckCircle2,
-  Loader2,
-  MapPin,
-} from "lucide-react";
+import { TrashIcon, ChevronLeft, CheckCircle2, Loader2, MapPin } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
-
-const WASTE_TYPES = [
-  "Furniture",
-  "Construction debris",
-  "Electronics",
-  "Tires",
-  "Hazardous materials",
-  "Other",
-];
 
 type Screen = "welcome" | "form" | "done";
 
@@ -41,22 +18,11 @@ export default function ReportDumping() {
 
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
-  const [wasteType, setWasteType] = useState("Furniture");
   const [description, setDescription] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [caseNumber, setCaseNumber] = useState("");
   const [ackMessage, setAckMessage] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handlePhotoChange = (file: File) => {
-    setPhotoFile(file);
-    const reader = new FileReader();
-    reader.onload = (e) => setPhotoPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
-  };
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
@@ -79,26 +45,23 @@ export default function ReportDumping() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: name.trim() || undefined,
-          wasteType,
           description: description.trim(),
           location: location.trim(),
           caseNumber: caseNum,
-          photoBase64: photoPreview ?? undefined,
         }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
-      setAckMessage(data.message || "Your report has been received. Thank you for helping keep San Jose clean.");
+      setAckMessage(data.message || "Your report has been received. Thank you for helping keep San Jose bike lanes clear.");
     } catch {
-      setAckMessage("Your report has been received. Thank you for helping keep San Jose clean.");
+      setAckMessage("Your report has been received. Thank you for helping keep San Jose bike lanes clear.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleReset = () => {
-    setName(""); setLocation(""); setWasteType("Furniture");
-    setDescription(""); setPhotoFile(null); setPhotoPreview(null);
+    setName(""); setLocation(""); setDescription("");
     setErrors({}); setCaseNumber(""); setAckMessage("");
     setScreen("welcome");
   };
@@ -152,6 +115,7 @@ export default function ReportDumping() {
             </h2>
             <form onSubmit={handleSubmit} noValidate>
               <div className="bg-white rounded-2xl shadow-sm p-4 space-y-4 mb-4">
+
                 {/* Name */}
                 <div className="space-y-1.5">
                   <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
@@ -189,23 +153,6 @@ export default function ReportDumping() {
                   {errors.location && <p className="text-xs text-red-500">{errors.location}</p>}
                 </div>
 
-                {/* Waste Type */}
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
-                    {t("dumping_waste_label")}
-                  </label>
-                  <Select value={wasteType} onValueChange={setWasteType}>
-                    <SelectTrigger className="rounded-xl border-gray-200 bg-gray-50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WASTE_TYPES.map((wt) => (
-                        <SelectItem key={wt} value={wt}>{wt}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Description */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
@@ -226,41 +173,6 @@ export default function ReportDumping() {
                     className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-300 bg-gray-50 resize-none ${errors.description ? "border-red-400" : "border-gray-200"}`}
                   />
                   {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
-                </div>
-
-                {/* Photo */}
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-semibold" style={{ color: "#1a3a1a" }}>
-                    {t("dumping_photo_label")}
-                  </label>
-                  <label
-                    htmlFor="photo-input"
-                    className="flex items-center gap-3 cursor-pointer border-2 border-dashed rounded-xl px-4 py-3 transition-colors hover:bg-gray-50"
-                    style={{ borderColor: "#c5d9c5" }}
-                  >
-                    <Upload className="w-4 h-4 flex-shrink-0" style={{ color: "#2d6a2d" }} />
-                    <span className="text-sm text-gray-500 truncate">
-                      {photoFile ? photoFile.name : t("dumping_photo_btn")}
-                    </span>
-                    <input
-                      ref={fileInputRef}
-                      id="photo-input"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handlePhotoChange(f);
-                      }}
-                    />
-                  </label>
-                  {photoPreview && (
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      className="mt-1 max-h-40 w-full object-contain rounded-xl border border-gray-200"
-                    />
-                  )}
                 </div>
               </div>
 
