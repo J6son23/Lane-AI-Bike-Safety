@@ -12,8 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ChevronLeft, Upload, CheckCircle, Loader2 } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 const WASTE_TYPES = [
   "Furniture",
@@ -33,6 +34,7 @@ interface FormErrors {
 
 export default function ReportDumping() {
   const [, navigate] = useLocation();
+  const { t } = useLang();
   const [screen, setScreen] = useState<Screen>("welcome");
 
   const [name, setName] = useState("");
@@ -118,19 +120,22 @@ export default function ReportDumping() {
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-md mx-auto space-y-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <ChevronLeft className="w-4 h-4" /> Back
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="bg-emerald-600 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full tracking-wide">
-              SAN JOSE
-            </span>
-            <span className="text-sm text-gray-500">Community Services</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4" /> {t("dumping_back")}
+            </button>
+            <div className="flex items-center gap-2">
+              <span className="bg-emerald-600 text-white text-xs font-semibold px-2.5 py-0.5 rounded-full tracking-wide">
+                SAN JOSE
+              </span>
+              <span className="text-sm text-gray-500">{t("home_community")}</span>
+            </div>
           </div>
+          <LanguageSelector />
         </div>
 
         {screen === "welcome" && (
@@ -145,18 +150,15 @@ export default function ReportDumping() {
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Report Illegal Dumping</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{t("dumping_welcome_title")}</h1>
                 <p className="mt-2 text-sm text-gray-500 leading-relaxed">
-                  Help keep San Jose clean. Report trash, furniture, or debris
-                  dumped on streets and public spaces. No login required.
+                  {t("dumping_welcome_subtitle")}
                 </p>
               </div>
               <Button className="w-full" size="lg" onClick={() => setScreen("form")}>
-                Start Report
+                {t("dumping_welcome_btn")}
               </Button>
-              <p className="text-xs text-gray-400">
-                Reports are typically reviewed within 1–2 business days.
-              </p>
+              <p className="text-xs text-gray-400">{t("home_footer")}</p>
             </CardContent>
           </Card>
         )}
@@ -164,33 +166,26 @@ export default function ReportDumping() {
         {screen === "form" && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Report Details</CardTitle>
-              <p className="text-sm text-gray-500">
-                Tell us what you saw and where. Fields marked{" "}
-                <span className="text-red-500">*</span> are required.
-              </p>
+              <CardTitle className="text-lg">{t("dumping_form_title")}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 <div className="space-y-1.5">
                   <Label htmlFor="name">
-                    Your name{" "}
-                    <span className="text-gray-400 font-normal">(optional)</span>
+                    {t("dumping_name_label")}{" "}
+                    <span className="text-gray-400 font-normal">({t("dumping_name_placeholder")})</span>
                   </Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Jordan Lee"
+                    placeholder={t("dumping_name_placeholder")}
                     autoComplete="name"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="location">
-                    Street address or cross streets{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="location">{t("dumping_location_label")}</Label>
                   <Input
                     id="location"
                     value={location}
@@ -198,7 +193,7 @@ export default function ReportDumping() {
                       setLocation(e.target.value);
                       if (e.target.value.trim()) setErrors((p) => ({ ...p, location: undefined }));
                     }}
-                    placeholder="e.g. 1st St & Santa Clara St"
+                    placeholder={t("dumping_location_placeholder")}
                     className={errors.location ? "border-red-400" : ""}
                   />
                   {errors.location && (
@@ -207,14 +202,14 @@ export default function ReportDumping() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="waste-type">Type of waste</Label>
+                  <Label htmlFor="waste-type">{t("dumping_waste_label")}</Label>
                   <Select value={wasteType} onValueChange={setWasteType}>
                     <SelectTrigger id="waste-type">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {WASTE_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      {WASTE_TYPES.map((wt) => (
+                        <SelectItem key={wt} value={wt}>{wt}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -222,12 +217,8 @@ export default function ReportDumping() {
 
                 <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <Label htmlFor="description">
-                      Description <span className="text-red-500">*</span>
-                    </Label>
-                    <span className="text-xs text-gray-400">
-                      {description.length}/300
-                    </span>
+                    <Label htmlFor="description">{t("dumping_desc_label")}</Label>
+                    <span className="text-xs text-gray-400">{description.length}/300</span>
                   </div>
                   <Textarea
                     id="description"
@@ -237,7 +228,7 @@ export default function ReportDumping() {
                       if (e.target.value.trim()) setErrors((p) => ({ ...p, description: undefined }));
                     }}
                     maxLength={300}
-                    placeholder="Describe what you saw, how much there is, and any other details that would help our crews."
+                    placeholder={t("dumping_desc_placeholder")}
                     className={`resize-none min-h-[100px] ${errors.description ? "border-red-400" : ""}`}
                   />
                   {errors.description && (
@@ -246,17 +237,14 @@ export default function ReportDumping() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>
-                    Upload a photo{" "}
-                    <span className="text-gray-400 font-normal">(optional)</span>
-                  </Label>
+                  <Label>{t("dumping_photo_label")}</Label>
                   <label
                     className="flex items-center gap-3 cursor-pointer border border-dashed border-gray-300 rounded-lg px-4 py-3 hover:border-emerald-400 hover:bg-emerald-50 transition-colors"
                     htmlFor="photo-input"
                   >
                     <Upload className="w-5 h-5 text-gray-400 flex-shrink-0" />
                     <span className="text-sm text-gray-500 truncate">
-                      {photoFile ? photoFile.name : "Tap to choose a photo"}
+                      {photoFile ? photoFile.name : t("dumping_photo_btn")}
                     </span>
                     <input
                       ref={fileInputRef}
@@ -280,8 +268,13 @@ export default function ReportDumping() {
                 </div>
 
                 <div className="flex flex-col gap-2 pt-1">
-                  <Button type="submit" className="w-full" size="lg">
-                    Submit Report
+                  <Button type="submit" className="w-full" size="lg" disabled={submitting}>
+                    {submitting ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t("dumping_submitting")}
+                      </span>
+                    ) : t("dumping_submit")}
                   </Button>
                   <Button
                     type="button"
@@ -289,7 +282,7 @@ export default function ReportDumping() {
                     className="w-full"
                     onClick={() => setScreen("welcome")}
                   >
-                    Cancel
+                    {t("dumping_back")}
                   </Button>
                 </div>
               </form>
@@ -304,27 +297,33 @@ export default function ReportDumping() {
                 <CheckCircle className="w-9 h-9 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Thank you!</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t("dumping_done_title")}</h2>
                 <p className="mt-2 text-sm text-gray-500 leading-relaxed min-h-[3rem]">
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2 text-gray-400">
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating your acknowledgment…
+                      {t("dumping_submitting")}
                     </span>
                   ) : (
-                    ackMessage
+                    ackMessage || t("dumping_done_msg")
                   )}
                 </p>
               </div>
-              <div className="bg-emerald-50 rounded-xl px-4 py-3 font-mono text-2xl font-bold text-emerald-700 tracking-widest">
-                {caseNumber}
+              <div>
+                <p className="text-xs text-gray-400 mb-1">{t("dumping_done_case")}</p>
+                <div className="bg-emerald-50 rounded-xl px-4 py-3 font-mono text-2xl font-bold text-emerald-700 tracking-widest">
+                  {caseNumber}
+                </div>
               </div>
               <Button className="w-full" onClick={handleReset}>
-                Submit Another Report
+                {t("dumping_done_another")}
               </Button>
-              <p className="text-xs text-gray-400">
-                For emergencies or hazardous spills, call 911 or San Jose 311.
-              </p>
+              <button
+                onClick={() => navigate("/")}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                {t("dumping_done_home")}
+              </button>
             </CardContent>
           </Card>
         )}

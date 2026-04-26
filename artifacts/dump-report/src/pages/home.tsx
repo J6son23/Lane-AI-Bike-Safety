@@ -1,23 +1,29 @@
 import { useLocation } from "wouter";
 import { TrashIcon, CameraIcon, ShieldCheck } from "lucide-react";
+import { useLang } from "@/contexts/LanguageContext";
+import { LanguageSelector } from "@/components/LanguageSelector";
 
 export default function Home() {
   const [, navigate] = useLocation();
+  const { t } = useLang();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm space-y-8 text-center">
-        <div>
-          <div className="inline-flex items-center gap-2 mb-4">
-            <span className="bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full tracking-wide">
-              SAN JOSE
-            </span>
-            <span className="text-sm text-gray-500">Community Services</span>
+      <div className="w-full max-w-sm space-y-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 mb-4">
+              <span className="bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full tracking-wide">
+                {t("home_badge")}
+              </span>
+              <span className="text-sm text-gray-500">{t("home_community")}</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">{t("home_title")}</h1>
+            <p className="mt-2 text-sm text-gray-500">{t("home_subtitle")}</p>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">City Services</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Select a service to get started.
-          </p>
+          <div className="flex-shrink-0 ml-3 mt-1">
+            <LanguageSelector />
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -29,10 +35,8 @@ export default function Home() {
               <TrashIcon className="w-6 h-6 text-emerald-600" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Report Illegal Dumping</div>
-              <div className="text-sm text-gray-500 mt-0.5">
-                Report trash or debris dumped in public spaces
-              </div>
+              <div className="font-semibold text-gray-900">{t("home_dumping_title")}</div>
+              <div className="text-sm text-gray-500 mt-0.5">{t("home_dumping_desc")}</div>
             </div>
           </button>
 
@@ -44,10 +48,8 @@ export default function Home() {
               <CameraIcon className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Analyze Photo</div>
-              <div className="text-sm text-gray-500 mt-0.5">
-                AI-powered bike lane hazard triage for staff
-              </div>
+              <div className="font-semibold text-gray-900">{t("home_analyze_title")}</div>
+              <div className="text-sm text-gray-500 mt-0.5">{t("home_analyze_desc")}</div>
             </div>
           </button>
 
@@ -59,17 +61,13 @@ export default function Home() {
               <ShieldCheck className="w-6 h-6 text-purple-600" />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">Staff Portal</div>
-              <div className="text-sm text-gray-500 mt-0.5">
-                City staff only — view all submitted reports
-              </div>
+              <div className="font-semibold text-gray-900">{t("home_staff_title")}</div>
+              <div className="text-sm text-gray-500 mt-0.5">{t("home_staff_desc")}</div>
             </div>
           </button>
         </div>
 
-        <p className="text-xs text-gray-400">
-          Reports are reviewed within 1–2 business days.
-        </p>
+        <p className="text-xs text-gray-400 text-center">{t("home_footer")}</p>
       </div>
     </div>
   );
