@@ -23,6 +23,8 @@ import {
   Layers,
   CheckCircle2,
   XCircle,
+  ImageOff,
+  Bike,
 } from "lucide-react";
 
 type DumpingReport = {
@@ -192,7 +194,6 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-mono text-sm font-bold text-gray-700">{r.caseNumber}</span>
-          <Badge variant="outline">{r.wasteType}</Badge>
           {r.reporterName && (
             <span className="text-xs text-gray-500">by {r.reporterName}</span>
           )}
@@ -204,12 +205,17 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
       )}
       <p className="text-sm text-gray-700 leading-relaxed mt-1">{r.description}</p>
 
-      {r.photoBase64 && (
+      {r.photoBase64 ? (
         <img
           src={r.photoBase64}
           alt="Report photo"
           className="max-h-40 w-full object-contain rounded-lg border border-gray-200 bg-gray-50 mt-2"
         />
+      ) : (
+        <div className="mt-2 flex items-center gap-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-2.5 text-xs text-gray-400">
+          <ImageOff className="w-4 h-4 flex-shrink-0" />
+          No image provided
+        </div>
       )}
 
       {r.ackMessage && (
@@ -253,7 +259,7 @@ function DumpingGroupCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-              <Trash2 className="w-3 h-3" /> Illegal Dumping
+              <Bike className="w-3 h-3" /> Bike Lane Obstruction
             </span>
             {isStacked && (
               <button
@@ -705,7 +711,7 @@ export default function StaffDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Staff Portal</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            All submitted reports — illegal dumping and bike lane hazards.
+            All submitted reports — bike lane obstructions and AI-analyzed hazards.
           </p>
         </div>
 

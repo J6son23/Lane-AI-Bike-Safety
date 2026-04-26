@@ -21,9 +21,9 @@ router.post("/acknowledge", async (req, res) => {
 
   const userContent = [
     name ? `Resident name: ${name}` : "Resident name: (not provided)",
-    `Type of waste: ${wasteType ?? "Unspecified"}`,
+    location ? `Location: ${location}` : "",
     `Description: ${description}`,
-  ].join("\n");
+  ].filter(Boolean).join("\n");
 
   let message = "";
   try {
@@ -34,8 +34,9 @@ router.post("/acknowledge", async (req, res) => {
           role: "system",
           content:
             "You are a helpful assistant for the City of San Jose 311 service. " +
-            "Write a 2-sentence acknowledgment of a resident illegal dumping report. " +
-            "Be professional and empathetic. Address the resident by name if provided.",
+            "Write a 2-sentence acknowledgment of a resident bike lane obstruction report. " +
+            "Be professional and empathetic. Address the resident by name if provided. " +
+            "Confirm the report has been received and that city crews will investigate.",
         },
         { role: "user", content: userContent },
       ],
