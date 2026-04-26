@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { TrashIcon, CameraIcon, ShieldCheck } from "lucide-react";
+import { TrashIcon, CameraIcon, ShieldCheck, Building2 } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -8,66 +8,74 @@ export default function Home() {
   const { t } = useLang();
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="flex items-start justify-between">
+    <div className="min-h-screen px-4 py-8" style={{ backgroundColor: "#edf4ed" }}>
+      <div className="relative w-full max-w-sm mx-auto">
+
+        <div className="absolute top-0 right-0">
+          <LanguageSelector />
+        </div>
+
+        <div className="flex flex-col items-center text-center mb-8 pt-2 space-y-3">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+            <Building2 className="w-6 h-6" style={{ color: "#2d6a2d" }} />
+          </div>
           <div>
-            <div className="inline-flex items-center gap-2 mb-4">
-              <span className="bg-emerald-600 text-white text-xs font-semibold px-3 py-1 rounded-full tracking-wide">
+            <div className="inline-flex items-center gap-2 mb-1">
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#2d6a2d" }}>
                 {t("home_badge")}
               </span>
-              <span className="text-sm text-gray-500">{t("home_community")}</span>
+              <span className="text-xs text-gray-400">·</span>
+              <span className="text-xs text-gray-500">{t("home_community")}</span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">{t("home_title")}</h1>
-            <p className="mt-2 text-sm text-gray-500">{t("home_subtitle")}</p>
-          </div>
-          <div className="flex-shrink-0 ml-3 mt-1">
-            <LanguageSelector />
+            <h1 className="text-2xl font-extrabold leading-tight" style={{ color: "#1a3a1a" }}>
+              {t("home_title")}
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">{t("home_subtitle")}</p>
           </div>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={() => navigate("/report-dumping")}
-            className="w-full flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 text-left shadow-sm hover:shadow-md hover:border-emerald-300 transition-all group"
+            className="w-full flex items-center gap-4 bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-              <TrashIcon className="w-6 h-6 text-emerald-600" />
+            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+              <TrashIcon className="w-5 h-5" style={{ color: "#2d6a2d" }} />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">{t("home_dumping_title")}</div>
-              <div className="text-sm text-gray-500 mt-0.5">{t("home_dumping_desc")}</div>
+              <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_dumping_title")}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{t("home_dumping_desc")}</div>
             </div>
           </button>
 
           <button
             onClick={() => navigate("/analyze-hazard")}
-            className="w-full flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 text-left shadow-sm hover:shadow-md hover:border-blue-300 transition-all group"
+            className="w-full flex items-center gap-4 bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-              <CameraIcon className="w-6 h-6 text-blue-600" />
+            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+              <CameraIcon className="w-5 h-5" style={{ color: "#2d6a2d" }} />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">{t("home_analyze_title")}</div>
-              <div className="text-sm text-gray-500 mt-0.5">{t("home_analyze_desc")}</div>
+              <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_analyze_title")}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{t("home_analyze_desc")}</div>
             </div>
           </button>
 
           <button
             onClick={() => navigate("/staff/login")}
-            className="w-full flex items-center gap-4 bg-white border border-gray-200 rounded-2xl p-5 text-left shadow-sm hover:shadow-md hover:border-purple-300 transition-all group"
+            className="w-full flex items-center gap-4 bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-all"
           >
-            <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-purple-600" />
+            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+              <ShieldCheck className="w-5 h-5" style={{ color: "#2d6a2d" }} />
             </div>
             <div>
-              <div className="font-semibold text-gray-900">{t("home_staff_title")}</div>
-              <div className="text-sm text-gray-500 mt-0.5">{t("home_staff_desc")}</div>
+              <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_staff_title")}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{t("home_staff_desc")}</div>
             </div>
           </button>
         </div>
 
-        <p className="text-xs text-gray-400 text-center">{t("home_footer")}</p>
+        <p className="text-xs text-gray-400 text-center mt-8">{t("home_footer")}</p>
       </div>
     </div>
   );
