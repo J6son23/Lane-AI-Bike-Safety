@@ -10,7 +10,7 @@ import HazardTriage from "@/pages/hazard-triage";
 import StaffLogin from "@/pages/staff-login";
 import StaffDashboard from "@/pages/staff-dashboard";
 import { useState, useEffect, useRef } from "react";
-import { ShieldCheck, Lock } from "lucide-react";
+import { Building2, Lock } from "lucide-react";
 
 const PASSCODE = "2978";
 const STORAGE_KEY = "app_access_granted";
@@ -55,32 +55,35 @@ function PasscodeGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center px-6"
+      className="min-h-screen flex flex-col items-center justify-center px-4 py-8"
       style={{ backgroundColor: "#edf4ed" }}
     >
-      <div className="w-full max-w-xs flex flex-col items-center text-center space-y-5">
+      <div className="w-full max-w-sm flex flex-col items-center text-center space-y-6">
 
-        <div
-          className="w-16 h-16 rounded-full flex items-center justify-center shadow-sm"
-          style={{ backgroundColor: "#d4e8d4" }}
-        >
-          {error ? (
-            <Lock className="w-7 h-7 text-red-500" />
-          ) : (
-            <ShieldCheck className="w-7 h-7" style={{ color: "#2d6a2d" }} />
-          )}
+        {/* Home page header — identical to home.tsx */}
+        <div className="flex flex-col items-center text-center space-y-3">
+          <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+            {error
+              ? <Lock className="w-5 h-5 text-red-500" />
+              : <Building2 className="w-6 h-6" style={{ color: "#2d6a2d" }} />}
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-2 mb-1">
+              <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "#2d6a2d" }}>SAN JOSE</span>
+              <span className="text-xs text-gray-400">·</span>
+              <span className="text-xs text-gray-500">Community Services</span>
+            </div>
+            <h1 className="text-2xl font-extrabold leading-tight" style={{ color: "#1a3a1a" }}>City Services</h1>
+            <p className="mt-1 text-sm text-gray-500">Select a service to get started.</p>
+          </div>
         </div>
 
-        <div>
-          <h1 className="text-2xl font-extrabold" style={{ color: "#1a3a1a" }}>
-            Secure Access
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
+        {/* Passcode card */}
+        <div className="bg-white rounded-2xl shadow-sm w-full p-5 space-y-4">
+          <p className="text-sm font-semibold text-center" style={{ color: "#1a3a1a" }}>
             Enter 4-digit passcode to continue
           </p>
-        </div>
 
-        <div className="bg-white rounded-2xl shadow-sm w-full p-5 space-y-4">
           <input
             ref={inputRef}
             type="password"
@@ -104,7 +107,7 @@ function PasscodeGate({ children }: { children: React.ReactNode }) {
           />
 
           {error && (
-            <p className="text-sm text-red-500 font-medium -mt-1">
+            <p className="text-sm text-red-500 font-medium text-center -mt-1">
               Incorrect passcode
             </p>
           )}
@@ -119,7 +122,7 @@ function PasscodeGate({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <p className="text-xs text-gray-400">City of San Jose · Bike Lane Safety</p>
+        <p className="text-xs text-gray-400">{`City of San Jose · Bike Lane Safety`}</p>
       </div>
     </div>
   );
