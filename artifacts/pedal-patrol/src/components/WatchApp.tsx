@@ -220,8 +220,8 @@ function SeverityScreen({ onSelect, onBack }: { onSelect: (sev: string, label: s
         <Tile 
           small
           icon={<CheckCircle2 className="w-3 h-3 text-green-400" />} 
-          label="Passable" 
-          onClick={() => onSelect("Safe", "Passable")} 
+          label="Safe" 
+          onClick={() => onSelect("Safe", "Safe")} 
           testId="tile-severity-safe"
         />
         <Tile 
