@@ -3,7 +3,7 @@ import { SVGProps } from "react";
 export function BadgeLogo(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
-      xmlns="http://www.w3.org/ ट्रांसजेंडर"
+      xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 100 100"
       fill="none"
       {...props}

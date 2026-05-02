@@ -68,19 +68,30 @@ function Home() {
         </div>
       </div>
 
-      {/* Sticky Preview Tab */}
-      <button 
+      {/* Sticky Preview Tab — visible on all screen sizes */}
+      <button
         onClick={() => {
           document.getElementById('watch-preview')?.scrollIntoView({ behavior: 'smooth' });
         }}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 bg-background border-x border-t border-border/60 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] rounded-t-xl px-4 py-2 flex items-center gap-2 hover:bg-secondary/50 transition-colors z-50 md:hidden"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 hover:scale-105 transition-transform z-50"
+        aria-label="Scroll to watch preview"
+        data-testid="button-preview-tab"
       >
-        <svg width="18" height="24" viewBox="0 0 24 32" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary">
-          <rect x="4" y="4" width="16" height="24" rx="6" />
-          <path d="M8 2h8" />
-          <path d="M8 30h8" />
+        {/* Apple Watch silhouette outline — proportions match the watch frame */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="80"
+          height="40"
+          viewBox="0 0 80 40"
+          fill="none"
+        >
+          {/* Watch body outline — wider pill at top/bottom, rectangular sides */}
+          <rect x="1.5" y="1.5" width="77" height="37" rx="18.5" fill="hsl(var(--background))" fillOpacity="0.9" stroke="hsl(var(--primary))" strokeWidth="1.5" />
+          {/* Crown nub on right */}
+          <rect x="75" y="14" width="4" height="12" rx="2" fill="hsl(var(--primary))" fillOpacity="0.5" />
+          {/* Label */}
+          <text x="38" y="24" textAnchor="middle" fontSize="11" fontWeight="600" fontFamily="inherit" fill="hsl(var(--primary))">Preview</text>
         </svg>
-        <span className="text-sm font-semibold text-foreground">Preview App</span>
       </button>
     </div>
   );

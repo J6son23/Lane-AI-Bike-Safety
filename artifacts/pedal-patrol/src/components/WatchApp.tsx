@@ -1,7 +1,37 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { BadgeLogo } from "./BadgeLogo";
-import { ChevronLeft, Mic, MapPin, CheckCircle2, AlertTriangle, TrafficCone, ShieldAlert, Navigation, Hash, Layers, Brush } from "lucide-react";
+import { ChevronLeft, Mic, MapPin, CheckCircle2, AlertTriangle, TrafficCone, ShieldAlert, Hash, Layers, Brush } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+interface SpeechRecognitionAlternative {
+  readonly transcript: string;
+  readonly confidence: number;
+}
+interface SpeechRecognitionResult {
+  readonly [index: number]: SpeechRecognitionAlternative;
+  readonly length: number;
+}
+interface SpeechRecognitionResultList {
+  readonly [index: number]: SpeechRecognitionResult;
+  readonly length: number;
+}
+interface SpeechRecognitionEvent {
+  readonly results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionInstance {
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+}
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionInstance;
+}
+declare global {
+  interface Window {
+    SpeechRecognition?: SpeechRecognitionConstructor;
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+  }
+}
 
 type Screen = 
   | "home"
@@ -260,14 +290,14 @@ function LocationScreen({
   const [locStatus, setLocStatus] = useState<string>("");
 
   const handleMic = () => {
-    const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRec = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SpeechRec) {
       setMicStatus("Not supported");
       setTimeout(() => setMicStatus(""), 2000);
       return;
     }
     const recognition = new SpeechRec();
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       const text = event.results[0][0].transcript;
       setLocInput(text);
       onUpdate(state.direction, text);
@@ -379,14 +409,14 @@ function ReviewScreen({ state, onSave, onBack }: { state: AppState, onSave: () =
       <Header title="Review" onBack={onBack} />
       
       <div className="bg-white/5 border border-white/10 rounded-lg p-2 mb-auto flex flex-col gap-1.5 mt-1">
-        <div className="text-[10px] font-bold leading-tight line-clamp-2">{heading}</div>
-        
-        <div className="grid grid-cols-[30px_1fr] gap-x-1 text-[9px]">
-          <span className="text-gray-500">Dir:</span>
-          <span className="text-gray-200 truncate">{state.direction || "None"}</span>
-          
-          <span className="text-gray-500">Loc:</span>
+        <div className="text-[10px] font-bold leading-tight line-clamp-2 mb-1">{heading}</div>
+        <div className="grid grid-cols-[36px_1fr] gap-x-1 gap-y-1 text-[9px]">
+          <span className="text-gray-500 font-semibold">Issue</span>
+          <span className="text-gray-200 truncate">{state.label || state.category || "—"}</span>
+          <span className="text-gray-500 font-semibold">Where</span>
           <span className="text-gray-200 truncate">{state.location || "Unspecified"}</span>
+          <span className="text-gray-500 font-semibold">Dir</span>
+          <span className="text-gray-200 truncate">{state.direction || "None"}</span>
         </div>
       </div>
 
