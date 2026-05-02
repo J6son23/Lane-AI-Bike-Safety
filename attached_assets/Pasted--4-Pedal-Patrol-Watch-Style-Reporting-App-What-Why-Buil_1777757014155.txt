@@ -1,0 +1,47 @@
+#4 - Pedal Patrol Watch-Style Reporting App
+
+What & Why
+
+Build a new standalone web artifact called "Pedal Patrol" — a polished Apple Watch-inspired bike lane reporting interface. The desktop page frames the watch UI in a two-column layout, with brand/copy on the left and a realistic watch device on the right. The watch itself contains a full multi-screen reporting app that saves reports locally. This is a separate product from the existing dump-report app.
+
+Done looks like
+
+A new artifact served at its own path (e.g. /pedal-patrol)
+Desktop layout: left column with Pedal Patrol branding + tagline; right column with Apple Watch device frame containing the interactive app
+Mobile layout: stacked vertically, watch centered and usable
+A badge-style SVG logo (bike-lane/civic theme, dark outer badge, green accent lane) shown in both the desktop brand area and the watch start screen
+Watch UI cycles through 6 screens with no clipping:
+Home — app name, tagline, "Enter App" button
+Category — "Obstruction" or "Road damage" selection tiles 3a. Obstruction severity — Safe / Caution / Danger tiles with auto-labels 3b. Road damage type — Pothole / Surface break / Faded paint tiles
+Location/details — compact layout with direction circles (N/S/E/W), cross-street text input, mic button (speech recognition), map-pin button (geolocation), and "Review" button — all visible without scrolling
+Review — severity + category heading, summary card (Issue / Where / Direction), "Save Local Report" button
+Done — success icon, "Report queued", "New Report" button
+Direction circles highlight the selected direction; clicking tiles advances the screen
+Mic button uses Web Speech API; map-pin button uses Geolocation API; both fail gracefully with status text
+"Save Local Report" persists report JSON to localStorage under the key bikeLaneWatchReports
+Visual style: calm pale-green/off-white page background, deep green and charcoal tones, accent-green buttons, white text on dark watch screen, rounded shapes, compact typography — no purple, neon, or generic SaaS styling
+All interactive icons have aria-label attributes
+A sticky "Preview" tab fixed to the bottom center of the page: outlined in an Apple Watch silhouette shape (rounded-rectangle with slight pill top/bottom, matching the watch frame proportions), labeled "Preview" in the project's typography, styled in the project's color scheme. Clicking the tab scrolls or focuses the watch UI.
+Out of scope
+
+Backend submission or API integration (local storage only)
+Integration with the existing dump-report app or API server
+Staff dashboard or authentication
+Internationalization
+Steps
+
+Scaffold new artifact — Create a new React + Vite artifact (e.g. slug pedal-patrol, preview path /pedal-patrol) following the pnpm workspace conventions. Configure PORT via env var and register the artifact.
+Page layout and design tokens — Build the two-column desktop / stacked-mobile page shell. Define color tokens (pale green background, deep green, charcoal, accent green, cream/mint) as CSS variables or Tailwind config. Set up global typography scale.
+Badge logo component — Create an SVG badge component: dark outer badge shape, green accent bike-lane stripe, compact civic graphic. Render it in the desktop brand column and pass it into the watch start screen.
+Apple Watch device frame — Build the watch frame: dark rounded body, bezel, crown/side buttons, soft premium box shadow. The screen area is the bounded viewport for all watch screens — no overflow, no scroll.
+Watch screen state machine — Implement a React state machine (or context) tracking: screen, category, severity, label, direction, location. Wire back-button navigation and screen-advance transitions as in-place swaps (no scroll).
+Screens 1–3 (Home, Category, Severity/Damage type) — Build the four early screens with tile-based selection. Tapping a tile updates state and advances the screen. Style selection tiles with highlight/active states.
+Screen 4: Location/Details — Build the compact location screen. Direction row: four equal circular tap targets (N/S/E/W) with selected highlight. Cross-street input with mic and map-pin icon buttons beside it. Integrate Web Speech API for mic (populate input on transcript, fallback status text). Integrate Geolocation API for map-pin (populate input with coordinates, fallback status text). Verify all elements fit within the watch viewport without clipping.
+Screen 5–6 (Review and Done) — Assemble the review screen from state (severity + category heading, Issue/Where/Direction summary card). "Save Local Report" writes to localStorage and advances to the done screen. Done screen shows checkmark, copy, and "New Report" button that resets state to screen 1.
+"Preview" bottom tab — Add a sticky element fixed to the bottom center of the page. It is outlined in an Apple Watch silhouette shape (an SVG or CSS rounded-rectangle with the same proportions as the watch frame — wider pill-shaped top and bottom edges). The label "Preview" sits inside the outline. Clicking it smoothly scrolls the watch into view. Style it using the page's color tokens so it blends with but stands out from the page background.
+Relevant files
+
+artifacts/dump-report/src/App.tsx
+artifacts/dump-report/vite.config.ts
+pnpm-workspace.yaml
+tsconfig.base.json
