@@ -1,0 +1,289 @@
+Build a polished single-page web app called Pedal Patrol that recreates the exact UI and behavior of my current local prototype. This is an Apple Watch-inspired bike-lane reporting interface with a desktop presentation around it. Do not simplify it into a generic form app. Preserve the compact watch interaction model, the visual tone, and the full flow.
+
+PROJECT GOAL
+
+Create a local-first reporting app for bike lane issues. The app should let a user quickly report:
+1. Bike lane obstructions
+2. Road damage
+
+The experience should feel like a watch app preview displayed on a desktop webpage. The watch UI is the main interactive product surface.
+
+GENERAL LAYOUT
+
+The page has two main columns on desktop:
+1. Left column:
+   - Brand/logo area
+   - The text SAN JOSE
+   - Large product name: Pedal Patrol
+   - Supporting text: “Fast obstruction and road-condition reports from a wrist-sized interface.”
+
+2. Right column:
+   - A realistic Apple Watch style device frame
+   - The watch contains the full interactive app
+   - The watch should have a dark body, rounded screen, side crown/buttons, and a soft premium shadow
+
+On mobile, stack the layout vertically, but keep the watch UI centered and usable.
+
+BRAND + VISUAL STYLE
+
+Match this visual language:
+- Calm pale green / off-white page background
+- Deep green and charcoal interface tones
+- Accent green buttons
+- Soft cream / mint highlight colors
+- High contrast white text on the watch screen
+- Clean modern civic-tech feel, not flashy startup UI
+- Rounded shapes everywhere, especially within the watch
+- The watch screen should feel dense but readable
+- Avoid purple, neon, bright blue, or generic SaaS styling
+
+TYPOGRAPHY + SPACING
+
+- The desktop page title “Pedal Patrol” should be large, bold, and dark green
+- The watch UI should use compact type sizing with strong hierarchy
+- The location/details page must fit fully inside the watch viewport without clipping
+- Reduce oversized headings if needed, but keep them readable
+- Buttons and tap targets should feel easy to hit inside a watch-sized screen
+
+LOGO / START PAGE BRANDING
+
+Use the Pedal Patrol branding on the start page.
+The start page should show:
+- Pedal Patrol as the app name
+- A badge-style logo inspired by a bike-lane obstruction emblem
+- The same badge appears:
+  - In the left desktop brand area
+  - Inside the watch start screen
+
+The badge/logo should visually suggest:
+- Bike lane theme
+- Dark outer badge
+- Green accent lane
+- Compact graphic feel
+- Civic reporting / transportation safety tone
+
+WATCH APP FLOW
+
+The watch app is multi-screen and should behave like a small mobile/watch app, not like a long scrolling webpage.
+
+SCREEN 1: HOME / APP ENTRY
+Contents:
+- Small top status row with time, like 9:41
+- Small label: Community Services
+- Main title: Pedal Patrol
+- Supporting copy: “Tap in, choose the condition, and send a local report draft.”
+- Primary button: Enter App
+
+SCREEN 2: CATEGORY SELECTION
+Contents:
+- Back button
+- Label: Choose report
+- Heading: What did you see?
+- Two large selectable options:
+  1. Obstruction
+     - Subtitle: Blocked lane or path
+  2. Road damage
+     - Subtitle: Pothole, debris, paint
+
+SCREEN 3A: OBSTRUCTION SEVERITY
+Contents:
+- Back button
+- Label: Obstruction
+- Heading: Risk level
+- Three tappable options:
+  1. Safe
+     - Subtitle: Passable
+  2. Caution
+     - Subtitle: Slow down
+  3. Danger
+     - Subtitle: Unsafe
+
+When selected, store:
+- Severity
+- Label describing the issue
+
+Use suggested labels:
+- Safe -> Temporary cone
+- Caution -> Partial block
+- Danger -> Full block
+
+SCREEN 3B: ROAD DAMAGE TYPE
+Contents:
+- Back button
+- Label: Road damage
+- Heading: Select issue
+- Three tappable options:
+  1. Pothole
+     - Subtitle: Wheel hazard
+     - Severity: Caution
+  2. Surface break
+     - Subtitle: Cracks or trench
+     - Severity: Danger
+  3. Faded paint
+     - Subtitle: Marking issue
+     - Severity: Safe
+
+SCREEN 4: LOCATION / DETAILS
+This screen must fully fit inside the watch without content clipping.
+
+Contents:
+- Back button
+- Label: Location
+- Heading: Nearest cross street
+
+Below that:
+1. Direction selector
+   - Label: Direction
+   - Four circular buttons in one row:
+     - N
+     - S
+     - E
+     - W
+   - Selected state should be clearly highlighted
+   - These circles should be easy to tap
+
+2. Cross street input area
+   - Label: Cross street
+   - Text input with default value: San Jose bike lane
+   - To the right of the input, place two icon buttons, same size:
+     - Mic button
+     - Map pin button
+
+3. Helper text under the input row:
+   - “Use mic or map pin”
+
+4. Primary button at bottom:
+   - Review
+
+IMPORTANT LAYOUT NOTE:
+The title and upper spacing on this page should be slightly reduced compared to the earlier prototype so that all controls fit within the watch screen. Keep the heading readable, but compact.
+
+LOCATION TOOLS
+
+Mic button behavior:
+- Use browser speech recognition if available
+- When tapped, populate the cross street input with the transcribed speech
+- If unsupported, fail gracefully and update helper/status text
+
+Map pin button behavior:
+- Icon only, no text button
+- Same size as mic button
+- Styled in the project color scheme
+- Shape should feel like a Google Maps pin
+- When tapped, request geolocation
+- If successful, set the input value to something like:
+  “Pinned 37.12345, -121.12345”
+- Update helper/status text to indicate success or failure
+- If geolocation unsupported or denied, fail gracefully
+
+SCREEN 5: REVIEW
+Contents:
+- Back button
+- Label: Report draft
+- Heading showing severity + category, for example:
+  - Danger obstruction
+  - Caution road damage
+- Summary card with:
+  - Issue
+  - Where
+  - Direction
+- Primary button:
+  - Save Local Report
+
+SCREEN 6: DONE / CONFIRMATION
+Contents:
+- Success icon/checkmark
+- Label: Saved locally
+- Heading: Report queued
+- Supporting copy:
+  “Ready for city review workflow integration.”
+- Button:
+  - New Report
+
+STATE / DATA MODEL
+
+Track this state in the app:
+- category
+- severity
+- label
+- direction
+- location input value
+
+Suggested defaults:
+- category: obstruction
+- severity: Caution
+- label: Partial block
+- direction: Northbound
+- location: San Jose bike lane
+
+REVIEW SCREEN CONTENT RULES
+
+The review screen should assemble state like this:
+- If category is damage, title should use “road damage”
+- Otherwise use “obstruction”
+- Summary should show:
+  - Issue = selected label
+  - Where = text input value
+  - Direction = selected direction
+
+LOCAL STORAGE
+
+When the user taps Save Local Report:
+- Save the report into localStorage
+- Use a key like `bikeLaneWatchReports`
+- Save an array of report objects
+- Include:
+  - category
+  - severity
+  - label
+  - direction
+  - location
+  - createdAt timestamp
+- Then navigate to the success/done screen
+
+INTERACTION REQUIREMENTS
+
+- Use button-based screen transitions
+- Back buttons should take the user to the prior logical step
+- Tapping category and issue tiles should update state and move to the next screen
+- Tapping severity should update state and move to the details screen
+- Direction circles should visibly toggle selected state
+- The watch screens should swap in place rather than scroll into view
+
+ACCESSIBILITY / UX
+
+- All actionable icons need clear aria-labels
+- Keep text readable on the dark watch screen
+- Maintain strong contrast
+- The UI should feel tactile and compact
+- Avoid overflowing text or clipped content
+- The location screen must fully fit in the viewport without the review button being cut off
+
+TECHNICAL PREFERENCES
+
+A simple frontend stack is fine. HTML/CSS/JS or React are both acceptable, but preserve the exact experience.
+If using React, keep it lightweight.
+This does not need a real backend yet.
+Local browser storage is enough for now.
+
+FILES / STRUCTURE
+
+At minimum include:
+- A main page
+- CSS for full visual styling
+- JS logic for screen switching, state updates, localStorage, mic support, and geolocation support
+
+SUCCESS CRITERIA
+
+The finished app should:
+- Look like a polished Apple Watch reporting tool
+- Show Pedal Patrol branding
+- Match the green civic-tech aesthetic
+- Support obstruction and road damage reporting
+- Include direction circles above the cross street field
+- Include mic and icon-only map pin controls beside the text input
+- Fit fully inside the watch UI on the location screen
+- Save reports locally
+- End on a confirmation screen
+
+Do not replace this with a generic dashboard or standard form. Recreate this as a branded watch-style reporting experience.
