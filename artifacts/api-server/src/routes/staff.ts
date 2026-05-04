@@ -1,6 +1,6 @@
 import { Router, type IRouter, type RequestHandler } from "express";
 import { db, dumpingReportsTable, hazardReportsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, isNull, ne, or } from "drizzle-orm";
 
 const router: IRouter = Router();
 
@@ -31,10 +31,12 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       db
         .select()
         .from(dumpingReportsTable)
+        .where(or(isNull(dumpingReportsTable.closedStatus), ne(dumpingReportsTable.closedStatus, "Closed and Resolved")))
         .orderBy(desc(dumpingReportsTable.createdAt)),
       db
         .select()
         .from(hazardReportsTable)
+        .where(or(isNull(hazardReportsTable.closedStatus), ne(hazardReportsTable.closedStatus, "Closed and Resolved")))
         .orderBy(desc(hazardReportsTable.createdAt)),
     ]);
 
@@ -48,6 +50,7 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       description: r.description,
       ackMessage: r.ackMessage,
       photoBase64: r.photoBase64,
+      closedStatus: r.closedStatus,
       createdAt: r.createdAt,
     }));
 
@@ -60,6 +63,7 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       imageBase64: r.imageBase64,
       dispatchedAt: r.dispatchedAt,
       dispatchedTo: r.dispatchedTo,
+      closedStatus: r.closedStatus,
       createdAt: r.createdAt,
     }));
 
@@ -105,6 +109,30 @@ router.post("/staff/close-report", requireAuth, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to close report");
     res.status(500).json({ error: "Failed to close report" });
+  }
+});
+
+router.post("/staff/set-in-progress", requireAuth, async (req, res) => {
+  const { id } = req.body ?? {};
+  if (!id) {
+    res.status(400).json({ error: "id is required" });
+    return;
+  }
+  try {
+    if (typeof id === "string" && id.startsWith("dumping-")) {
+      const numericId = Number(id.slice("dumping-".length));
+      await db.update(dumpingReportsTable).set({ closedStatus: "In Progress" }).where(eq(dumpingReportsTable.id, numericId));
+    } else if (typeof id === "string" && id.startsWith("hazard-")) {
+      const numericId = Number(id.slice("hazard-".length));
+      await db.update(hazardReportsTable).set({ closedStatus: "In Progress" }).where(eq(hazardReportsTable.id, numericId));
+    } else {
+      res.status(400).json({ error: "Invalid report id format" });
+      return;
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to set report in progress");
+    res.status(500).json({ error: "Failed to update report" });
   }
 });
 

@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { TrashIcon, CameraIcon, ShieldCheck, Building2 } from "lucide-react";
+import { TrashIcon, CameraIcon, ShieldCheck, Building2, MapPin } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -66,6 +66,19 @@ export default function Home() {
             <div>
               <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("home_analyze_title")}</div>
               <div className="text-xs text-gray-500 mt-0.5">{t("home_analyze_desc")}</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate("/report-map")}
+            className="w-full flex items-center gap-4 bg-white rounded-2xl p-4 text-left shadow-sm hover:shadow-md transition-all"
+          >
+            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#d4e8d4" }}>
+              <MapPin className="w-5 h-5" style={{ color: "#2d6a2d" }} />
+            </div>
+            <div>
+              <div className="font-semibold text-sm" style={{ color: "#1a3a1a" }}>{t("map_button_title")}</div>
+              <div className="text-xs text-gray-500 mt-0.5">{t("map_button_desc")}</div>
             </div>
           </button>
         </div>

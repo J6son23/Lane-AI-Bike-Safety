@@ -18,6 +18,7 @@ import {
   XCircle,
   ImageOff,
   Bike,
+  Clock,
 } from "lucide-react";
 
 type DumpingReport = {
@@ -30,6 +31,7 @@ type DumpingReport = {
   description: string;
   ackMessage: string | null;
   photoBase64: string | null;
+  closedStatus: string | null;
   createdAt: string;
 };
 
@@ -42,6 +44,7 @@ type HazardReport = {
   imageBase64: string | null;
   dispatchedAt: string | null;
   dispatchedTo: string | null;
+  closedStatus: string | null;
   createdAt: string;
 };
 
@@ -108,21 +111,49 @@ function ActionButtons({
   ids,
   token,
   onDone,
+  initialInProgress = false,
 }: {
   ids: string[];
   token: string;
   onDone: () => void;
+  initialInProgress?: boolean;
 }) {
-  const [busy, setBusy] = useState<"resolved" | "unresolved" | null>(null);
+  const [busy, setBusy] = useState<"resolved" | "unresolved" | "inprogress" | null>(null);
+  const [inProgress, setInProgress] = useState(initialInProgress);
+
+  const handleInProgress = async () => {
+    setBusy("inprogress");
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch("/api/staff/set-in-progress", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id }),
+          }),
+        ),
+      );
+      setInProgress(true);
+    } finally {
+      setBusy(null);
+    }
+  };
 
   const handleResolved = async () => {
     setBusy("resolved");
     try {
       await Promise.all(
         ids.map((id) =>
-          fetch(`/api/staff/delete-report/${encodeURIComponent(id)}`, {
-            method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+          fetch("/api/staff/close-report", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ id, status: "resolved" }),
           }),
         ),
       );
@@ -162,6 +193,18 @@ function ActionButtons({
       >
         {busy === "resolved" ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
         Resolved
+      </button>
+      <button
+        onClick={inProgress ? undefined : handleInProgress}
+        disabled={busy !== null}
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+          inProgress
+            ? "bg-amber-400 text-amber-900 cursor-default ring-2 ring-amber-300"
+            : "bg-amber-100 text-amber-800 hover:bg-amber-200"
+        }`}
+      >
+        {busy === "inprogress" ? <Loader2 className="w-3 h-3 animate-spin" /> : <Clock className="w-3 h-3" />}
+        In Progress
       </button>
       <button
         onClick={handleUnresolved}
@@ -273,7 +316,7 @@ function DumpingGroupCard({
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(primary.createdAt)}</span>
-            <ActionButtons ids={allIds} token={token} onDone={() => onClose(allIds)} />
+            <ActionButtons ids={allIds} token={token} onDone={() => onClose(allIds)} initialInProgress={primary.closedStatus === "In Progress"} />
           </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
@@ -442,7 +485,7 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(r.createdAt)}</span>
-            <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} />
+            <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} initialInProgress={r.closedStatus === "In Progress"} />
           </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{r.hazardType}</p>

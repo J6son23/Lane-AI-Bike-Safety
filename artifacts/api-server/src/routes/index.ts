@@ -5,6 +5,7 @@ import analyzeHazardRouter from "./analyze-hazard";
 import staffRouter from "./staff";
 import dispatchReportRouter from "./dispatch-report";
 import geocodeRouter from "./geocode";
+import reportsMapRouter from "./reports-map";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(analyzeHazardRouter);
 router.use(staffRouter);
 router.use(dispatchReportRouter);
 router.use(geocodeRouter);
+router.use(reportsMapRouter);
 
 export default router;

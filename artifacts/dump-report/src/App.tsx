@@ -9,6 +9,7 @@ import ReportDumping from "@/pages/report-dumping";
 import HazardTriage from "@/pages/hazard-triage";
 import StaffLogin from "@/pages/staff-login";
 import StaffDashboard from "@/pages/staff-dashboard";
+import ReportMap from "@/pages/report-map";
 import { useState, useEffect, useRef } from "react";
 import { Building2, Lock } from "lucide-react";
 
@@ -128,6 +129,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/report-dumping" component={ReportDumping} />
       <Route path="/analyze-hazard" component={HazardTriage} />
+      <Route path="/report-map" component={ReportMap} />
       <Route path="/staff/login" component={StaffLogin} />
       <Route path="/staff" component={StaffDashboard} />
       <Route component={NotFound} />

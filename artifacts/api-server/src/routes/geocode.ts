@@ -18,11 +18,13 @@ router.get("/geocode", async (req, res) => {
         "Accept-Language": "en",
       },
     });
-    const data = (await response.json()) as { display_name: string; place_id: number }[];
+    const data = (await response.json()) as { display_name: string; place_id: number; lat: string; lon: string }[];
     res.json(
       data.slice(0, 6).map((r) => ({
         display_name: r.display_name,
         place_id: r.place_id,
+        lat: r.lat,
+        lon: r.lon,
       })),
     );
   } catch (err) {
