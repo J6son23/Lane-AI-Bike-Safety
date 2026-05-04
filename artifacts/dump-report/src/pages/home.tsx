@@ -13,6 +13,7 @@ export default function Home() {
 
         {/* Top-right: Staff icon + Language selector */}
         <div className="absolute top-0 right-0 flex items-center gap-2">
+          <LanguageSelector />
           <button
             onClick={() => navigate("/staff/login")}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-sm hover:shadow-md transition-all text-xs font-semibold"
@@ -21,7 +22,6 @@ export default function Home() {
             <ShieldCheck className="w-3.5 h-3.5" />
             Staff Portal
           </button>
-          <LanguageSelector />
         </div>
 
         <div className="flex flex-col items-center text-center mb-8 pt-2 space-y-3">
