@@ -632,7 +632,7 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
 
             {/* Privacy flags */}
             {(() => {
-              const flags = t["privacy_flags"] as string[] | null;
+              const flags = (t["privacy_flags"] as string[] | null | undefined) ?? null;
               return (
                 <div className="py-1.5">
                   <span className="text-sm font-medium text-gray-700">Privacy Flags</span>
