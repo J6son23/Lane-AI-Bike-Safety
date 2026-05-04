@@ -12,7 +12,7 @@ export default function Home() {
       <div className="relative w-full max-w-sm mx-auto">
 
         {/* Top-right: Staff icon + Language selector */}
-        <div className="absolute top-0 right-0 flex items-center gap-2">
+        <div className="absolute top-0 right-0 flex flex-col items-end gap-2">
           <LanguageSelector />
           <button
             onClick={() => navigate("/staff/login")}
