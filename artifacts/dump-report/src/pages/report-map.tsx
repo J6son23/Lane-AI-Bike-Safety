@@ -49,7 +49,11 @@ function makeColoredIcon(color: string) {
 const SAN_JOSE_CENTER: [number, number] = [37.3382, -121.8863];
 
 async function tryGeocode(q: string): Promise<{ lat: number; lng: number } | null> {
-  const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+  const query = encodeURIComponent(`${q}, San Jose, CA`);
+  const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=us`;
+  const res = await fetch(url, {
+    headers: { "Accept-Language": "en" },
+  });
   if (!res.ok) return null;
   const data: { lat: string; lon: string }[] = await res.json();
   if (!data.length || !data[0].lat) return null;
@@ -97,16 +101,17 @@ export default function ReportMap() {
         let failedGeocode = 0;
         const geocoded: GeocodedReport[] = [];
 
-        await Promise.all(
-          rawReports.map(async (r) => {
-            const coords = await geocodeLocation(r.location);
-            if (coords) {
-              geocoded.push({ ...r, lat: coords.lat, lng: coords.lng });
-            } else {
-              failedGeocode++;
-            }
-          }),
-        );
+        for (const r of rawReports) {
+          if (cancelled) break;
+          const coords = await geocodeLocation(r.location);
+          if (coords) {
+            geocoded.push({ ...r, lat: coords.lat, lng: coords.lng });
+          } else {
+            failedGeocode++;
+          }
+          // Nominatim enforces 1 req/sec; wait between calls
+          await new Promise((resolve) => setTimeout(resolve, 1100));
+        }
 
         if (!cancelled) {
           setReports(geocoded);
