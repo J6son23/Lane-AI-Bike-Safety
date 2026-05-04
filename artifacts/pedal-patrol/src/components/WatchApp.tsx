@@ -42,6 +42,8 @@ type Screen =
   | "review"
   | "done";
 
+type SyncStatus = "syncing" | "synced" | "queued";
+
 type AppState = {
   screen: Screen;
   category: string;
@@ -49,6 +51,7 @@ type AppState = {
   label: string;
   direction: string;
   location: string;
+  syncStatus?: SyncStatus;
 };
 
 const initialState: AppState = {
@@ -117,9 +120,9 @@ export function WatchApp() {
         )}
 
         {state.screen === "review" && (
-          <ReviewScreen 
+          <ReviewScreen
             state={state}
-            onSave={() => {
+            onSave={async () => {
               const report = {
                 id: Date.now(),
                 category: state.category,
@@ -127,18 +130,38 @@ export function WatchApp() {
                 label: state.label,
                 direction: state.direction,
                 location: state.location,
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
               };
-              const existing = JSON.parse(localStorage.getItem("bikeLaneWatchReports") || "[]");
-              localStorage.setItem("bikeLaneWatchReports", JSON.stringify([...existing, report]));
-              updateState({ screen: "done" });
-            }} 
-            onBack={() => navBack("location")} 
+              const existing = JSON.parse(
+                localStorage.getItem("bikeLaneWatchReports") || "[]"
+              );
+              localStorage.setItem(
+                "bikeLaneWatchReports",
+                JSON.stringify([...existing, report])
+              );
+              updateState({ screen: "done", syncStatus: "syncing" });
+              try {
+                const res = await fetch("/api/pedal-patrol/report", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(report),
+                });
+                updateState({
+                  syncStatus: res.ok ? "synced" : "queued",
+                });
+              } catch {
+                updateState({ syncStatus: "queued" });
+              }
+            }}
+            onBack={() => navBack("location")}
           />
         )}
 
         {state.screen === "done" && (
-          <DoneScreen onRestart={() => setState(initialState)} />
+          <DoneScreen
+            syncStatus={state.syncStatus ?? "syncing"}
+            onRestart={() => setState(initialState)}
+          />
         )}
       </div>
     </div>
@@ -431,18 +454,45 @@ function ReviewScreen({ state, onSave, onBack }: { state: AppState, onSave: () =
   );
 }
 
-function DoneScreen({ onRestart }: { onRestart: () => void }) {
+function DoneScreen({
+  syncStatus,
+  onRestart,
+}: {
+  syncStatus: SyncStatus;
+  onRestart: () => void;
+}) {
+  const statusConfig: Record<
+    SyncStatus,
+    { label: string; sub: string; color: string }
+  > = {
+    syncing: {
+      label: "Sending…",
+      sub: "Submitting to city database",
+      color: "text-yellow-400",
+    },
+    synced: {
+      label: "Report submitted",
+      sub: "Saved to city database",
+      color: "text-primary",
+    },
+    queued: {
+      label: "Report queued",
+      sub: "Saved locally, will sync later",
+      color: "text-yellow-400",
+    },
+  };
+  const cfg = statusConfig[syncStatus];
+
   return (
     <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-300 zoom-in-95">
       <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3">
-        <CheckCircle2 className="w-8 h-8 text-primary" />
+        <CheckCircle2 className={`w-8 h-8 ${cfg.color}`} />
       </div>
-      <h2 className="text-sm font-bold mb-1">Report queued</h2>
-      <p className="text-[9px] text-gray-400 mb-4 text-center">
-        Submitted to local queue
+      <h2 className="text-sm font-bold mb-1">{cfg.label}</h2>
+      <p className="text-[9px] text-gray-400 mb-4 text-center px-2">
+        {cfg.sub}
       </p>
-      
-      <button 
+      <button
         onClick={onRestart}
         data-testid="button-new-report"
         className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold py-1.5 px-4 rounded-full transition-colors border border-white/10"
