@@ -84,7 +84,11 @@ export default function HazardTriage() {
     const timer = setTimeout(async () => {
       setFetchingSuggestions(true);
       try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(locationInput)}`);
+        const query = encodeURIComponent(`${locationInput}, San Jose, CA`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1&limit=6&countrycodes=us`,
+          { headers: { "Accept-Language": "en" } },
+        );
         const data = await res.json();
         setSuggestions(Array.isArray(data) ? data : []);
         setShowSuggestions(Array.isArray(data) && data.length > 0);

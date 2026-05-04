@@ -42,7 +42,11 @@ function LocationAutocomplete({
     if (q.length < 3) { setSuggestions([]); setOpen(false); return; }
     setLoading(true);
     try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
+      const query = encodeURIComponent(`${q}, San Jose, CA`);
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1&limit=6&countrycodes=us`,
+        { headers: { "Accept-Language": "en" } },
+      );
       const data: Suggestion[] = await res.json();
       setSuggestions(data);
       setOpen(data.length > 0);
