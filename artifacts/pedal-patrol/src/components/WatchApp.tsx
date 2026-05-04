@@ -523,8 +523,6 @@ function ReviewScreen({ state, onSave, onBack }: { state: AppState; onSave: () =
           <span className="text-gray-200 truncate">{state.label || state.category || "—"}</span>
           <span className="text-gray-500 font-semibold">Where</span>
           <span className="text-gray-200 truncate">{state.location || "Unspecified"}</span>
-          <span className="text-gray-500 font-semibold">Dir</span>
-          <span className="text-gray-200 truncate">{state.direction || "None"}</span>
         </div>
       </div>
 
