@@ -19,6 +19,7 @@ import {
   ImageOff,
   Bike,
   Clock,
+  Trash2,
 } from "lucide-react";
 
 type DumpingReport = {
@@ -672,6 +673,8 @@ export default function StaffDashboard() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [purgeConfirm, setPurgeConfirm] = useState(false);
+  const [purging, setPurging] = useState(false);
 
   const token = localStorage.getItem("staff_token") ?? "";
 
@@ -704,6 +707,25 @@ export default function StaffDashboard() {
     }
     fetchReports();
   }, []);
+
+  const handlePurgeResolved = async () => {
+    if (!purgeConfirm) {
+      setPurgeConfirm(true);
+      setTimeout(() => setPurgeConfirm(false), 4000);
+      return;
+    }
+    setPurging(true);
+    setPurgeConfirm(false);
+    try {
+      await fetch("/api/staff/purge-resolved", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      await fetchReports();
+    } finally {
+      setPurging(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("staff_token");
@@ -746,9 +768,23 @@ export default function StaffDashboard() {
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchReports} disabled={loading}>
+            <Button variant="outline" size="sm" onClick={fetchReports} disabled={loading || purging}>
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePurgeResolved}
+              disabled={loading || purging}
+              className={purgeConfirm
+                ? "border-red-400 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
+                : "text-gray-500 hover:text-red-600 hover:border-red-300"}
+            >
+              {purging
+                ? <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                : <Trash2 className="w-3.5 h-3.5 mr-1.5" />}
+              {purgeConfirm ? "Confirm delete?" : "Clear resolved"}
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="w-3.5 h-3.5 mr-1.5" /> Sign out

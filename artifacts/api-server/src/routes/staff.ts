@@ -137,6 +137,19 @@ router.post("/staff/set-in-progress", requireAuth, async (req, res) => {
   }
 });
 
+router.delete("/staff/purge-resolved", requireAuth, async (req, res) => {
+  try {
+    await Promise.all([
+      db.delete(dumpingReportsTable).where(eq(dumpingReportsTable.closedStatus, "Closed and Resolved")),
+      db.delete(hazardReportsTable).where(eq(hazardReportsTable.closedStatus, "Closed and Resolved")),
+    ]);
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to purge resolved reports");
+    res.status(500).json({ error: "Failed to purge resolved reports" });
+  }
+});
+
 router.delete("/staff/delete-report/:id", requireAuth, async (req, res) => {
   const id = String(req.params["id"] ?? "");
   try {
