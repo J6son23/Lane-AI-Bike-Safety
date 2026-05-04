@@ -38,6 +38,7 @@ type DumpingReport = {
 type HazardReport = {
   id: string;
   type: "hazard";
+  caseNumber: string | null;
   hazardType: string;
   location: string | null;
   triageData: Record<string, unknown>;
@@ -488,7 +489,12 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
             <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} initialInProgress={r.closedStatus === "In Progress"} />
           </div>
         </div>
-        <p className="text-sm font-medium text-gray-800 mt-1">{r.hazardType}</p>
+        <div className="flex items-center gap-2 mt-1">
+          {r.caseNumber && (
+            <span className="font-mono text-sm font-bold" style={{ color: "#2d6a2d" }}>{r.caseNumber}</span>
+          )}
+          <p className="text-sm font-medium text-gray-800">{r.hazardType}</p>
+        </div>
         {r.location && (
           <p className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
             <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>

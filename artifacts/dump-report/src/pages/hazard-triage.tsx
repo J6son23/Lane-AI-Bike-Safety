@@ -6,6 +6,7 @@ import { LanguageSelector } from "@/components/LanguageSelector";
 
 interface TriageReport {
   _report_id: number | null;
+  _case_number: string | null;
   hazard_type: string | null;
   likely_severity: string | null;
   urgency_score: number | null;
@@ -170,6 +171,14 @@ export default function HazardTriage() {
             </div>
           </div>
           <h1 className="text-2xl font-bold" style={{ color: "#1a3a1a" }}>{t("hazard_success_title")}</h1>
+          {report?._case_number && (
+            <div className="bg-white rounded-2xl shadow-sm p-4 space-y-1">
+              <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Case Number</p>
+              <div className="font-mono text-2xl font-bold tracking-widest" style={{ color: "#2d6a2d" }}>
+                {report._case_number}
+              </div>
+            </div>
+          )}
           <p className="text-gray-500 text-sm">{t("hazard_success_msg")}</p>
           <button
             onClick={() => {

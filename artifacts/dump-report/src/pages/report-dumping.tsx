@@ -138,8 +138,6 @@ export default function ReportDumping() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    const caseNum = `SJ-${Math.floor(100000 + Math.random() * 900000)}`;
-    setCaseNumber(caseNum);
     setSubmitting(true);
     setScreen("done");
     try {
@@ -150,13 +148,14 @@ export default function ReportDumping() {
           name: name.trim() || undefined,
           description: description.trim(),
           location: location.trim(),
-          caseNumber: caseNum,
         }),
       });
       if (!res.ok) throw new Error("Request failed");
       const data = await res.json();
+      setCaseNumber(data.caseNumber || `SJT-${Math.floor(100000 + Math.random() * 900000)}`);
       setAckMessage(data.message || "Your report has been received. Thank you for helping keep San Jose bike lanes clear.");
     } catch {
+      setCaseNumber(`SJT-${Math.floor(100000 + Math.random() * 900000)}`);
       setAckMessage("Your report has been received. Thank you for helping keep San Jose bike lanes clear.");
     } finally {
       setSubmitting(false);

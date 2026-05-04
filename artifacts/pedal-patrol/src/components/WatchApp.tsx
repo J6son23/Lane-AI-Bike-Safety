@@ -52,6 +52,7 @@ type AppState = {
   direction: string;
   location: string;
   syncStatus?: SyncStatus;
+  caseNumber?: string;
 };
 
 const initialState: AppState = {
@@ -145,7 +146,12 @@ export function WatchApp() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(report),
                 });
-                updateState({ syncStatus: res.ok ? "synced" : "queued" });
+                if (res.ok) {
+                  const data = await res.json();
+                  updateState({ syncStatus: "synced", caseNumber: data.caseNumber ?? undefined });
+                } else {
+                  updateState({ syncStatus: "queued" });
+                }
               } catch {
                 updateState({ syncStatus: "queued" });
               }
@@ -157,6 +163,7 @@ export function WatchApp() {
         {state.screen === "done" && (
           <DoneScreen
             syncStatus={state.syncStatus ?? "syncing"}
+            caseNumber={state.caseNumber}
             onRestart={() => setState(initialState)}
           />
         )}
@@ -469,9 +476,11 @@ function ReviewScreen({ state, onSave, onBack }: { state: AppState; onSave: () =
 
 function DoneScreen({
   syncStatus,
+  caseNumber,
   onRestart,
 }: {
   syncStatus: SyncStatus;
+  caseNumber?: string;
   onRestart: () => void;
 }) {
   const statusConfig: Record<SyncStatus, { label: string; sub: string; color: string }> = {
@@ -495,15 +504,20 @@ function DoneScreen({
 
   return (
     <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-300 zoom-in-95">
-      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3">
-        <CheckCircle2 className={`w-8 h-8 ${cfg.color}`} />
+      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mb-2">
+        <CheckCircle2 className={`w-6 h-6 ${cfg.color}`} />
       </div>
-      <h2 className="text-[14px] font-bold mb-1">{cfg.label}</h2>
-      <p className="text-[11px] text-gray-400 mb-4 text-center px-2">{cfg.sub}</p>
+      <h2 className="text-[13px] font-bold mb-1">{cfg.label}</h2>
+      {caseNumber && (
+        <div className="font-mono text-[13px] font-bold text-primary mb-1 tracking-wider">
+          {caseNumber}
+        </div>
+      )}
+      <p className="text-[10px] text-gray-400 mb-3 text-center px-1 leading-tight">{cfg.sub}</p>
       <button
         onClick={onRestart}
         data-testid="button-new-report"
-        className="bg-white/10 hover:bg-white/20 text-white text-[12px] font-semibold py-1.5 px-4 rounded-full transition-colors border border-white/10"
+        className="bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold py-1.5 px-4 rounded-full transition-colors border border-white/10"
       >
         New Report
       </button>

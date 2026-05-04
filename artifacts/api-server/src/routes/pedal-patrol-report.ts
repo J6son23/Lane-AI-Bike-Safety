@@ -3,6 +3,10 @@ import { db, hazardReportsTable } from "@workspace/db";
 
 const router: IRouter = Router();
 
+function generateCaseNumber(): string {
+  return `SJA-${Math.floor(100000 + Math.random() * 900000)}`;
+}
+
 router.post("/pedal-patrol/report", async (req, res) => {
   const { category, severity, label, direction, location, createdAt } =
     req.body ?? {};
@@ -36,10 +40,13 @@ router.post("/pedal-patrol/report", async (req, res) => {
     reported_at: createdAt ?? new Date().toISOString(),
   };
 
+  const caseNumber = generateCaseNumber();
+
   try {
     const inserted = await db
       .insert(hazardReportsTable)
       .values({
+        caseNumber,
         hazardType,
         triageData,
         location: fullLocation,
@@ -48,8 +55,8 @@ router.post("/pedal-patrol/report", async (req, res) => {
       .returning({ id: hazardReportsTable.id });
 
     const reportId = inserted[0]?.id ?? null;
-    req.log.info({ reportId, hazardType, location: fullLocation }, "Pedal Patrol report saved");
-    res.json({ ok: true, reportId });
+    req.log.info({ reportId, caseNumber, hazardType, location: fullLocation }, "Pedal Patrol report saved");
+    res.json({ ok: true, reportId, caseNumber });
   } catch (err) {
     req.log.error({ err }, "Failed to save Pedal Patrol report");
     res.status(500).json({ error: "Failed to save report" });

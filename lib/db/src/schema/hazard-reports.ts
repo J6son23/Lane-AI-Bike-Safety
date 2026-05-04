@@ -4,6 +4,7 @@ import { z } from "zod";
 
 export const hazardReportsTable = pgTable("hazard_reports", {
   id: serial("id").primaryKey(),
+  caseNumber: text("case_number"),
   hazardType: text("hazard_type").notNull(),
   triageData: jsonb("triage_data").notNull(),
   imageBase64: text("image_base64"),

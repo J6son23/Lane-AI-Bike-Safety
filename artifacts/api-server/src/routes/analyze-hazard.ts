@@ -99,6 +99,10 @@ Guidelines:
 - confidence_notes: describe your confidence level and any ambiguities in the image
 `.trim();
 
+function generateCaseNumber(): string {
+  return `SJI-${Math.floor(100000 + Math.random() * 900000)}`;
+}
+
 const MAX_IMAGE_STORE_BYTES = 5 * 1024 * 1024;
 
 router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
@@ -161,6 +165,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
         ? `data:${mimeType};base64,${base64Image}`
         : null;
 
+    const caseNumber = generateCaseNumber();
     let reportId: number | null = null;
     try {
       const location =
@@ -171,6 +176,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
       const inserted = await db
         .insert(hazardReportsTable)
         .values({
+          caseNumber,
           hazardType: validated.data.hazard_type ?? "Unknown",
           triageData: validated.data as Record<string, unknown>,
           imageBase64: storedImage,
@@ -182,7 +188,7 @@ router.post("/analyze-hazard", uploadMiddleware, async (req, res) => {
       req.log.error({ err }, "Failed to save hazard report to DB");
     }
 
-    res.json({ ...validated.data, _report_id: reportId });
+    res.json({ ...validated.data, _report_id: reportId, _case_number: caseNumber });
   } catch (err) {
     req.log.error({ err }, "OpenAI hazard analysis failed");
     res.status(502).json({ error: "Failed to analyze hazard image" });

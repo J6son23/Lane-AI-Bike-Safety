@@ -10,8 +10,13 @@ function getClient() {
 
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
+function generateCaseNumber(prefix: string): string {
+  const digits = Math.floor(100000 + Math.random() * 900000);
+  return `SJ${prefix}-${digits}`;
+}
+
 router.post("/acknowledge", async (req, res) => {
-  const { name, wasteType, description, location, caseNumber, photoBase64 } =
+  const { name, wasteType, description, location, photoBase64 } =
     req.body ?? {};
 
   if (typeof description !== "string" || !description.trim()) {
@@ -49,12 +54,9 @@ router.post("/acknowledge", async (req, res) => {
     return;
   }
 
-  if (
-    typeof location === "string" &&
-    location.trim() &&
-    typeof caseNumber === "string" &&
-    caseNumber.trim()
-  ) {
+  const caseNum = generateCaseNumber("T");
+
+  if (typeof location === "string" && location.trim()) {
     try {
       const storedPhoto =
         typeof photoBase64 === "string" &&
@@ -63,7 +65,7 @@ router.post("/acknowledge", async (req, res) => {
           : null;
 
       await db.insert(dumpingReportsTable).values({
-        caseNumber: caseNumber.trim(),
+        caseNumber: caseNum,
         reporterName: typeof name === "string" && name.trim() ? name.trim() : null,
         location: location.trim(),
         wasteType: typeof wasteType === "string" ? wasteType : "Unspecified",
@@ -76,7 +78,7 @@ router.post("/acknowledge", async (req, res) => {
     }
   }
 
-  res.json({ message });
+  res.json({ message, caseNumber: caseNum });
 });
 
 export default router;

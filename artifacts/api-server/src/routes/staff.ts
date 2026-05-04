@@ -57,6 +57,7 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
     const hazardMapped = hazard.map((r) => ({
       id: `hazard-${r.id}`,
       type: "hazard" as const,
+      caseNumber: r.caseNumber ?? null,
       hazardType: r.hazardType,
       location: r.location ?? null,
       triageData: r.triageData,
