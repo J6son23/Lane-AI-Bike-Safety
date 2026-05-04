@@ -68,31 +68,6 @@ function Home() {
         </div>
       </div>
 
-      {/* Sticky Preview Tab — visible on all screen sizes */}
-      <button
-        onClick={() => {
-          document.getElementById('watch-preview')?.scrollIntoView({ behavior: 'smooth' });
-        }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 hover:scale-105 transition-transform z-50"
-        aria-label="Scroll to watch preview"
-        data-testid="button-preview-tab"
-      >
-        {/* Apple Watch silhouette outline — proportions match the watch frame */}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="80"
-          height="40"
-          viewBox="0 0 80 40"
-          fill="none"
-        >
-          {/* Watch body outline — wider pill at top/bottom, rectangular sides */}
-          <rect x="1.5" y="1.5" width="77" height="37" rx="18.5" fill="hsl(var(--background))" fillOpacity="0.9" stroke="hsl(var(--primary))" strokeWidth="1.5" />
-          {/* Crown nub on right */}
-          <rect x="75" y="14" width="4" height="12" rx="2" fill="hsl(var(--primary))" fillOpacity="0.5" />
-          {/* Label */}
-          <text x="38" y="24" textAnchor="middle" fontSize="11" fontWeight="600" fontFamily="inherit" fill="hsl(var(--primary))">Preview</text>
-        </svg>
-      </button>
     </div>
   );
 }

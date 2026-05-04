@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { TrashIcon, CameraIcon, ShieldCheck, Building2, MapPin } from "lucide-react";
+import { TrashIcon, CameraIcon, ShieldCheck, Building2, MapPin, Watch } from "lucide-react";
 import { useLang } from "@/contexts/LanguageContext";
 import { LanguageSelector } from "@/components/LanguageSelector";
 
@@ -85,6 +85,23 @@ export default function Home() {
         </div>
 
         <p className="text-xs text-gray-400 text-center mt-8">{t("home_footer")}</p>
+
+        {/* Pedal Patrol link */}
+        <div className="mt-6 pt-6 border-t border-black/5">
+          <button
+            onClick={() => { window.location.href = "/pedal-patrol/"; }}
+            className="w-full flex items-center gap-4 rounded-2xl p-4 text-left transition-all hover:opacity-80"
+            style={{ backgroundColor: "#1a2e1a" }}
+          >
+            <div className="flex-shrink-0 w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: "#2d6a2d" }}>
+              <Watch className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="font-semibold text-sm text-white">Pedal Patrol</div>
+              <div className="text-xs mt-0.5" style={{ color: "#a3c9a3" }}>Report hazards from your wrist</div>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
