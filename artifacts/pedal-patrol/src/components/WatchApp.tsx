@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BadgeLogo } from "./BadgeLogo";
 import { ChevronLeft, Mic, MapPin, CheckCircle2, AlertTriangle, TrafficCone, ShieldAlert, Hash, Layers, Brush } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -301,6 +301,11 @@ function DamageTypeScreen({ onSelect, onBack }: { onSelect: (label: string) => v
   );
 }
 
+function shortenWatchAddress(displayName: string): string {
+  const parts = displayName.split(",").map((p) => p.trim());
+  return parts.slice(0, 2).join(", ");
+}
+
 function LocationScreen({
   state,
   onUpdate,
@@ -315,6 +320,39 @@ function LocationScreen({
   const [locInput, setLocInput] = useState(state.location);
   const [micStatus, setMicStatus] = useState<"idle" | "listening" | "error">("idle");
   const [locStatus, setLocStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [suggestions, setSuggestions] = useState<{ display_name: string; place_id: number }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const fetchSuggestions = (q: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (q.trim().length < 3) { setSuggestions([]); setShowSuggestions(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const query = encodeURIComponent(`${q}, San Jose, CA`);
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1&limit=4&countrycodes=us`,
+          { headers: { "Accept-Language": "en" } },
+        );
+        const data = await res.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+        setShowSuggestions(Array.isArray(data) && data.length > 0);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 400);
+  };
 
   const handleMic = () => {
     const SpeechRec = window.SpeechRecognition ?? window.webkitSpeechRecognition;
@@ -381,18 +419,45 @@ function LocationScreen({
         ))}
       </div>
 
-      {/* Cross-street input */}
-      <div className="bg-white/5 rounded-lg border border-white/10 px-2 py-1.5 mb-2">
-        <input
-          type="text"
-          placeholder="Cross street or landmark..."
-          value={locInput}
-          onChange={(e) => {
-            setLocInput(e.target.value);
-            onUpdate(state.direction, e.target.value);
-          }}
-          className="w-full bg-transparent text-[11px] text-white placeholder-gray-500 outline-none"
-        />
+      {/* Cross-street input with autocomplete */}
+      <div ref={containerRef} className="relative mb-2">
+        <div className="bg-white/5 rounded-lg border border-white/10 px-2 py-1.5">
+          <input
+            type="text"
+            placeholder="Cross street or landmark..."
+            value={locInput}
+            onChange={(e) => {
+              const val = e.target.value;
+              setLocInput(val);
+              onUpdate(state.direction, val);
+              fetchSuggestions(val);
+            }}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            className="w-full bg-transparent text-[11px] text-white placeholder-gray-500 outline-none"
+          />
+        </div>
+        {showSuggestions && suggestions.length > 0 && (
+          <ul className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-gray-800 border border-white/10 rounded-lg overflow-hidden shadow-lg">
+            {suggestions.slice(0, 4).map((s) => (
+              <li key={s.place_id}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    const short = shortenWatchAddress(s.display_name);
+                    setLocInput(short);
+                    onUpdate(state.direction, short);
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                  }}
+                  className="w-full text-left px-2 py-1.5 text-[10px] text-gray-200 hover:bg-white/10 transition-colors leading-tight border-b border-white/5 last:border-0"
+                >
+                  {shortenWatchAddress(s.display_name)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Voice + GPS buttons */}
