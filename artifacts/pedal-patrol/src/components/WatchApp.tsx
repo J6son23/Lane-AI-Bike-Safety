@@ -33,7 +33,7 @@ declare global {
   }
 }
 
-type Screen = 
+type Screen =
   | "home"
   | "category"
   | "severity"
@@ -65,7 +65,7 @@ const initialState: AppState = {
 
 export function WatchApp() {
   const [state, setState] = useState<AppState>(initialState);
-  
+
   const updateState = (updates: Partial<AppState>) => {
     setState(prev => ({ ...prev, ...updates }));
   };
@@ -75,47 +75,46 @@ export function WatchApp() {
   };
 
   return (
-    <div className="relative w-[200px] h-[242px] bg-watch-bg text-white overflow-hidden rounded-[40px] shadow-inner p-4 font-sans flex flex-col box-border">
-      {/* Transition container */}
-      <div className="absolute inset-0 w-full h-full flex flex-col p-3 pt-6 watch-screen">
+    <div className="relative w-[200px] h-[242px] bg-watch-bg text-white overflow-hidden rounded-[40px] shadow-inner font-sans flex flex-col box-border">
+      <div className="absolute inset-0 w-full h-full flex flex-col p-3 pt-5 watch-screen">
         {state.screen === "home" && <HomeScreen onEnter={() => updateState({ screen: "category" })} />}
-        
+
         {state.screen === "category" && (
-          <CategoryScreen 
+          <CategoryScreen
             onSelect={(cat) => {
-              updateState({ 
-                category: cat, 
-                screen: cat === "Obstruction" ? "severity" : "damageType" 
+              updateState({
+                category: cat,
+                screen: cat === "Obstruction" ? "severity" : "damageType",
               });
-            }} 
-            onBack={() => navBack("home")} 
+            }}
+            onBack={() => navBack("home")}
           />
         )}
 
         {state.screen === "severity" && (
-          <SeverityScreen 
+          <SeverityScreen
             onSelect={(sev, lab) => {
               updateState({ severity: sev, label: lab, screen: "location" });
-            }} 
-            onBack={() => navBack("category")} 
+            }}
+            onBack={() => navBack("category")}
           />
         )}
 
         {state.screen === "damageType" && (
-          <DamageTypeScreen 
+          <DamageTypeScreen
             onSelect={(lab) => {
               updateState({ label: lab, screen: "location" });
-            }} 
-            onBack={() => navBack("category")} 
+            }}
+            onBack={() => navBack("category")}
           />
         )}
 
         {state.screen === "location" && (
-          <LocationScreen 
+          <LocationScreen
             state={state}
             onUpdate={(direction, location) => updateState({ direction, location })}
-            onNext={() => updateState({ screen: "review" })} 
-            onBack={() => navBack(state.category === "Obstruction" ? "severity" : "damageType")} 
+            onNext={() => updateState({ screen: "review" })}
+            onBack={() => navBack(state.category === "Obstruction" ? "severity" : "damageType")}
           />
         )}
 
@@ -146,9 +145,7 @@ export function WatchApp() {
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify(report),
                 });
-                updateState({
-                  syncStatus: res.ok ? "synced" : "queued",
-                });
+                updateState({ syncStatus: res.ok ? "synced" : "queued" });
               } catch {
                 updateState({ syncStatus: "queued" });
               }
@@ -172,12 +169,12 @@ export function WatchApp() {
 // Screens
 // ----------------------------------------------------------------------
 
-function Header({ title, onBack }: { title?: string, onBack?: () => void }) {
+function Header({ title, onBack }: { title?: string; onBack?: () => void }) {
   return (
-    <div className="flex items-center mb-2 z-10 w-full relative h-4 shrink-0">
+    <div className="flex items-center mb-2 z-10 w-full relative h-5 shrink-0">
       {onBack && (
-        <button 
-          onClick={onBack} 
+        <button
+          onClick={onBack}
           className="absolute left-0 top-1/2 -translate-y-1/2 text-primary hover:text-white transition-colors p-1"
           aria-label="Go back"
           data-testid="button-back"
@@ -186,7 +183,7 @@ function Header({ title, onBack }: { title?: string, onBack?: () => void }) {
         </button>
       )}
       {title && (
-        <h2 className="text-[10px] font-semibold text-center w-full uppercase tracking-wider text-gray-400 mt-1">
+        <h2 className="text-[11px] font-semibold text-center w-full uppercase tracking-wider text-gray-400">
           {title}
         </h2>
       )}
@@ -197,15 +194,15 @@ function Header({ title, onBack }: { title?: string, onBack?: () => void }) {
 function HomeScreen({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-300 zoom-in-95">
-      <BadgeLogo className="w-12 h-12 text-white mb-2" />
-      <h1 className="text-sm font-bold tracking-tight mb-1 text-center">Pedal Patrol</h1>
-      <p className="text-[9px] text-gray-400 text-center leading-tight mb-4 px-2">
+      <BadgeLogo className="w-10 h-10 text-white mb-2" />
+      <h1 className="text-[14px] font-bold tracking-tight mb-1 text-center">Pedal Patrol</h1>
+      <p className="text-[11px] text-gray-400 text-center leading-tight mb-4 px-2">
         Report bike lane hazards.
       </p>
-      <button 
+      <button
         onClick={onEnter}
         data-testid="button-enter-app"
-        className="bg-primary text-primary-foreground text-[11px] font-bold py-2 px-6 rounded-full shadow-lg active:scale-95 transition-transform"
+        className="bg-primary text-primary-foreground text-[12px] font-bold py-2 px-6 rounded-full shadow-lg active:scale-95 transition-transform"
       >
         Enter App
       </button>
@@ -213,21 +210,21 @@ function HomeScreen({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function CategoryScreen({ onSelect, onBack }: { onSelect: (cat: string) => void, onBack: () => void }) {
+function CategoryScreen({ onSelect, onBack }: { onSelect: (cat: string) => void; onBack: () => void }) {
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Report" onBack={onBack} />
-      <div className="flex flex-col gap-2 mt-1">
-        <Tile 
-          icon={<TrafficCone className="w-4 h-4 text-orange-400" />} 
-          label="Obstruction" 
-          onClick={() => onSelect("Obstruction")} 
+      <div className="flex flex-col gap-2 mt-1 flex-1">
+        <Tile
+          icon={<TrafficCone className="w-5 h-5 text-orange-400" />}
+          label="Obstruction"
+          onClick={() => onSelect("Obstruction")}
           testId="tile-obstruction"
         />
-        <Tile 
-          icon={<Hash className="w-4 h-4 text-blue-400" />} 
-          label="Road Damage" 
-          onClick={() => onSelect("Road Damage")} 
+        <Tile
+          icon={<Hash className="w-5 h-5 text-blue-400" />}
+          label="Road Damage"
+          onClick={() => onSelect("Road Damage")}
           testId="tile-road-damage"
         />
       </div>
@@ -235,30 +232,30 @@ function CategoryScreen({ onSelect, onBack }: { onSelect: (cat: string) => void,
   );
 }
 
-function SeverityScreen({ onSelect, onBack }: { onSelect: (sev: string, label: string) => void, onBack: () => void }) {
+function SeverityScreen({ onSelect, onBack }: { onSelect: (sev: string, label: string) => void; onBack: () => void }) {
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Severity" onBack={onBack} />
-      <div className="flex flex-col gap-1.5 mt-0 overflow-y-visible">
-        <Tile 
+      <div className="flex flex-col gap-1.5 mt-1 flex-1">
+        <Tile
           small
-          icon={<CheckCircle2 className="w-3 h-3 text-green-400" />} 
-          label="Safe" 
-          onClick={() => onSelect("Safe", "Safe")} 
+          icon={<CheckCircle2 className="w-4 h-4 text-green-400" />}
+          label="Safe"
+          onClick={() => onSelect("Safe", "Safe")}
           testId="tile-severity-safe"
         />
-        <Tile 
+        <Tile
           small
-          icon={<AlertTriangle className="w-3 h-3 text-yellow-400" />} 
-          label="Caution" 
-          onClick={() => onSelect("Caution", "Caution needed")} 
+          icon={<AlertTriangle className="w-4 h-4 text-yellow-400" />}
+          label="Caution"
+          onClick={() => onSelect("Caution", "Caution needed")}
           testId="tile-severity-caution"
         />
-        <Tile 
+        <Tile
           small
-          icon={<ShieldAlert className="w-3 h-3 text-red-500" />} 
-          label="Danger" 
-          onClick={() => onSelect("Danger", "Blocked / Danger")} 
+          icon={<ShieldAlert className="w-4 h-4 text-red-500" />}
+          label="Danger"
+          onClick={() => onSelect("Danger", "Blocked / Danger")}
           testId="tile-severity-danger"
         />
       </div>
@@ -266,30 +263,30 @@ function SeverityScreen({ onSelect, onBack }: { onSelect: (sev: string, label: s
   );
 }
 
-function DamageTypeScreen({ onSelect, onBack }: { onSelect: (label: string) => void, onBack: () => void }) {
+function DamageTypeScreen({ onSelect, onBack }: { onSelect: (label: string) => void; onBack: () => void }) {
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Damage" onBack={onBack} />
-      <div className="flex flex-col gap-1.5 mt-0">
-        <Tile 
+      <div className="flex flex-col gap-1.5 mt-1 flex-1">
+        <Tile
           small
-          icon={<AlertTriangle className="w-3 h-3 text-gray-300" />} 
-          label="Pothole" 
-          onClick={() => onSelect("Pothole")} 
+          icon={<AlertTriangle className="w-4 h-4 text-gray-300" />}
+          label="Pothole"
+          onClick={() => onSelect("Pothole")}
           testId="tile-damage-pothole"
         />
-        <Tile 
+        <Tile
           small
-          icon={<Layers className="w-3 h-3 text-gray-300" />} 
-          label="Surface break" 
-          onClick={() => onSelect("Surface break")} 
+          icon={<Layers className="w-4 h-4 text-gray-300" />}
+          label="Surface break"
+          onClick={() => onSelect("Surface break")}
           testId="tile-damage-surface"
         />
-        <Tile 
+        <Tile
           small
-          icon={<Brush className="w-3 h-3 text-gray-300" />} 
-          label="Faded paint" 
-          onClick={() => onSelect("Faded paint")} 
+          icon={<Brush className="w-4 h-4 text-gray-300" />}
+          label="Faded paint"
+          onClick={() => onSelect("Faded paint")}
           testId="tile-damage-paint"
         />
       </div>
@@ -297,57 +294,59 @@ function DamageTypeScreen({ onSelect, onBack }: { onSelect: (label: string) => v
   );
 }
 
-function LocationScreen({ 
-  state, 
-  onUpdate, 
-  onNext, 
-  onBack 
-}: { 
-  state: AppState, 
-  onUpdate: (dir: string, loc: string) => void, 
-  onNext: () => void, 
-  onBack: () => void 
+function LocationScreen({
+  state,
+  onUpdate,
+  onNext,
+  onBack,
+}: {
+  state: AppState;
+  onUpdate: (dir: string, loc: string) => void;
+  onNext: () => void;
+  onBack: () => void;
 }) {
   const [locInput, setLocInput] = useState(state.location);
-  const [micStatus, setMicStatus] = useState<string>("");
-  const [locStatus, setLocStatus] = useState<string>("");
+  const [micStatus, setMicStatus] = useState<"idle" | "listening" | "error">("idle");
+  const [locStatus, setLocStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const handleMic = () => {
     const SpeechRec = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!SpeechRec) {
-      setMicStatus("Not supported");
-      setTimeout(() => setMicStatus(""), 2000);
+      setMicStatus("error");
+      setTimeout(() => setMicStatus("idle"), 2000);
       return;
     }
+    setMicStatus("listening");
     const recognition = new SpeechRec();
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const text = event.results[0][0].transcript;
       setLocInput(text);
       onUpdate(state.direction, text);
+      setMicStatus("idle");
     };
     recognition.onerror = () => {
-      setMicStatus("Error");
-      setTimeout(() => setMicStatus(""), 2000);
+      setMicStatus("error");
+      setTimeout(() => setMicStatus("idle"), 2000);
     };
     recognition.start();
   };
 
   const handleLoc = () => {
-    setLocStatus("...");
+    setLocStatus("loading");
     if (!navigator.geolocation) {
-      setLocStatus("Error");
+      setLocStatus("error");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const text = `Near ${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
+        const text = `${pos.coords.latitude.toFixed(3)}, ${pos.coords.longitude.toFixed(3)}`;
         setLocInput(text);
         onUpdate(state.direction, text);
-        setLocStatus("");
+        setLocStatus("idle");
       },
       () => {
-        setLocStatus("Error");
-        setTimeout(() => setLocStatus(""), 2000);
+        setLocStatus("error");
+        setTimeout(() => setLocStatus("idle"), 2000);
       }
     );
   };
@@ -355,16 +354,17 @@ function LocationScreen({
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Details" onBack={onBack} />
-      
-      <div className="flex justify-between mb-2 px-1">
+
+      {/* Direction picker */}
+      <div className="flex justify-between mb-2 px-0.5">
         {["N", "S", "E", "W"].map(d => (
           <button
             key={d}
             onClick={() => onUpdate(d, locInput)}
             className={cn(
-              "w-7 h-7 rounded-full text-[10px] font-bold flex items-center justify-center transition-colors border",
-              state.direction === d 
-                ? "bg-primary text-white border-primary" 
+              "w-8 h-8 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors border",
+              state.direction === d
+                ? "bg-primary text-white border-primary"
                 : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
             )}
             data-testid={`button-dir-${d.toLowerCase()}`}
@@ -374,47 +374,61 @@ function LocationScreen({
         ))}
       </div>
 
-      <div className="flex flex-col gap-1 mb-auto">
-        <div className="relative flex items-center bg-white/5 rounded-md border border-white/10 p-1">
-          <input 
-            type="text" 
-            placeholder="Cross street..." 
-            value={locInput}
-            onChange={(e) => {
-              setLocInput(e.target.value);
-              onUpdate(state.direction, e.target.value);
-            }}
-            className="w-full bg-transparent text-[10px] text-white placeholder-gray-500 outline-none px-1"
-          />
-          <div className="flex items-center gap-1 shrink-0 ml-1">
-            <button 
-              onClick={handleMic} 
-              aria-label="Start voice input"
-              data-testid="button-mic"
-              className="p-1 rounded-sm hover:bg-white/10 text-gray-400 hover:text-white"
-            >
-              <Mic className="w-3 h-3" />
-            </button>
-            <button 
-              onClick={handleLoc} 
-              aria-label="Use my location"
-              data-testid="button-pin"
-              className="p-1 rounded-sm hover:bg-white/10 text-gray-400 hover:text-primary"
-            >
-              <MapPin className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-        {(micStatus || locStatus) && (
-          <span className="text-[8px] text-red-400 px-1">{micStatus || locStatus}</span>
-        )}
+      {/* Cross-street input */}
+      <div className="bg-white/5 rounded-lg border border-white/10 px-2 py-1.5 mb-2">
+        <input
+          type="text"
+          placeholder="Cross street or landmark..."
+          value={locInput}
+          onChange={(e) => {
+            setLocInput(e.target.value);
+            onUpdate(state.direction, e.target.value);
+          }}
+          className="w-full bg-transparent text-[11px] text-white placeholder-gray-500 outline-none"
+        />
       </div>
 
-      <button 
+      {/* Voice + GPS buttons */}
+      <div className="flex gap-1.5 mb-2">
+        <button
+          onClick={handleMic}
+          aria-label="Start voice input"
+          data-testid="button-mic"
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors",
+            micStatus === "listening"
+              ? "bg-primary/30 border-primary text-primary"
+              : micStatus === "error"
+              ? "bg-red-500/20 border-red-500/50 text-red-400"
+              : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
+          )}
+        >
+          <Mic className="w-3.5 h-3.5" />
+          {micStatus === "listening" ? "Listening…" : micStatus === "error" ? "Error" : "Voice"}
+        </button>
+        <button
+          onClick={handleLoc}
+          aria-label="Use my location"
+          data-testid="button-pin"
+          className={cn(
+            "flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg border text-[11px] font-semibold transition-colors",
+            locStatus === "loading"
+              ? "bg-primary/30 border-primary text-primary"
+              : locStatus === "error"
+              ? "bg-red-500/20 border-red-500/50 text-red-400"
+              : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
+          )}
+        >
+          <MapPin className="w-3.5 h-3.5" />
+          {locStatus === "loading" ? "Finding…" : locStatus === "error" ? "Error" : "GPS"}
+        </button>
+      </div>
+
+      <button
         onClick={onNext}
         disabled={!state.direction && !locInput}
         data-testid="button-review-next"
-        className="mt-2 bg-primary text-white text-[11px] font-bold py-1.5 px-4 rounded-full disabled:opacity-50 disabled:bg-gray-600 transition-colors w-full"
+        className="mt-auto bg-primary text-white text-[12px] font-bold py-1.5 px-4 rounded-full disabled:opacity-50 disabled:bg-gray-600 transition-colors w-full"
       >
         Review →
       </button>
@@ -422,18 +436,17 @@ function LocationScreen({
   );
 }
 
-function ReviewScreen({ state, onSave, onBack }: { state: AppState, onSave: () => void, onBack: () => void }) {
-  const heading = state.category === "Obstruction" 
-    ? `${state.severity} ${state.category}`
-    : state.label;
+function ReviewScreen({ state, onSave, onBack }: { state: AppState; onSave: () => void; onBack: () => void }) {
+  const heading =
+    state.category === "Obstruction" ? `${state.severity} ${state.category}` : state.label;
 
   return (
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Review" onBack={onBack} />
-      
-      <div className="bg-white/5 border border-white/10 rounded-lg p-2 mb-auto flex flex-col gap-1.5 mt-1">
-        <div className="text-[10px] font-bold leading-tight line-clamp-2 mb-1">{heading}</div>
-        <div className="grid grid-cols-[36px_1fr] gap-x-1 gap-y-1 text-[9px]">
+
+      <div className="bg-white/5 border border-white/10 rounded-lg p-2 flex-1 flex flex-col gap-1.5 mt-1 overflow-hidden">
+        <div className="text-[12px] font-bold leading-tight line-clamp-2 mb-0.5">{heading}</div>
+        <div className="grid grid-cols-[40px_1fr] gap-x-1 gap-y-1.5 text-[11px]">
           <span className="text-gray-500 font-semibold">Issue</span>
           <span className="text-gray-200 truncate">{state.label || state.category || "—"}</span>
           <span className="text-gray-500 font-semibold">Where</span>
@@ -443,12 +456,12 @@ function ReviewScreen({ state, onSave, onBack }: { state: AppState, onSave: () =
         </div>
       </div>
 
-      <button 
+      <button
         onClick={onSave}
         data-testid="button-save-report"
-        className="w-full bg-primary text-white text-[11px] font-bold py-2 rounded-full mt-2 active:scale-95 transition-transform"
+        className="w-full bg-primary text-white text-[12px] font-bold py-2 rounded-full mt-2 active:scale-95 transition-transform"
       >
-        Save Local Report
+        Save Report
       </button>
     </div>
   );
@@ -461,22 +474,19 @@ function DoneScreen({
   syncStatus: SyncStatus;
   onRestart: () => void;
 }) {
-  const statusConfig: Record<
-    SyncStatus,
-    { label: string; sub: string; color: string }
-  > = {
+  const statusConfig: Record<SyncStatus, { label: string; sub: string; color: string }> = {
     syncing: {
       label: "Sending…",
       sub: "Submitting to city database",
       color: "text-yellow-400",
     },
     synced: {
-      label: "Report submitted",
+      label: "Submitted!",
       sub: "Saved to city database",
       color: "text-primary",
     },
     queued: {
-      label: "Report queued",
+      label: "Queued",
       sub: "Saved locally, will sync later",
       color: "text-yellow-400",
     },
@@ -488,14 +498,12 @@ function DoneScreen({
       <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mb-3">
         <CheckCircle2 className={`w-8 h-8 ${cfg.color}`} />
       </div>
-      <h2 className="text-sm font-bold mb-1">{cfg.label}</h2>
-      <p className="text-[9px] text-gray-400 mb-4 text-center px-2">
-        {cfg.sub}
-      </p>
+      <h2 className="text-[14px] font-bold mb-1">{cfg.label}</h2>
+      <p className="text-[11px] text-gray-400 mb-4 text-center px-2">{cfg.sub}</p>
       <button
         onClick={onRestart}
         data-testid="button-new-report"
-        className="bg-white/10 hover:bg-white/20 text-white text-[10px] font-semibold py-1.5 px-4 rounded-full transition-colors border border-white/10"
+        className="bg-white/10 hover:bg-white/20 text-white text-[12px] font-semibold py-1.5 px-4 rounded-full transition-colors border border-white/10"
       >
         New Report
       </button>
@@ -507,18 +515,18 @@ function DoneScreen({
 // Helpers
 // ----------------------------------------------------------------------
 
-function Tile({ 
-  icon, 
-  label, 
-  onClick, 
-  testId, 
-  small = false 
-}: { 
-  icon: React.ReactNode, 
-  label: string, 
-  onClick: () => void, 
-  testId: string, 
-  small?: boolean 
+function Tile({
+  icon,
+  label,
+  onClick,
+  testId,
+  small = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  testId: string;
+  small?: boolean;
 }) {
   return (
     <button
@@ -526,13 +534,11 @@ function Tile({
       data-testid={testId}
       className={cn(
         "w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50 text-left rounded-xl transition-all flex items-center gap-2",
-        small ? "p-2" : "p-3"
+        small ? "p-2" : "p-2.5"
       )}
     >
-      <div className="bg-black/20 rounded-full p-1.5 shrink-0">
-        {icon}
-      </div>
-      <span className={cn("font-medium text-gray-200 leading-tight", small ? "text-[10px]" : "text-[11px]")}>
+      <div className="bg-black/20 rounded-full p-1.5 shrink-0">{icon}</div>
+      <span className={cn("font-semibold text-gray-200 leading-tight", small ? "text-[11px]" : "text-[12px]")}>
         {label}
       </span>
     </button>
