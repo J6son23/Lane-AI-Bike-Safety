@@ -7,8 +7,9 @@ const router: IRouter = Router();
 function deriveStatus(
   dispatchedAt: string | null | Date | undefined,
   closedStatus: string | null | undefined,
-): "Reported" | "In Progress" | "Resolved" {
-  if (closedStatus === "Closed and Resolved" || closedStatus === "Closed and Unresolved") return "Resolved";
+): "Reported" | "In Progress" | "Resolved" | "Unresolved" {
+  if (closedStatus === "Closed and Resolved") return "Resolved";
+  if (closedStatus === "Closed and Unresolved") return "Unresolved";
   if (closedStatus === "In Progress" || dispatchedAt) return "In Progress";
   return "Reported";
 }

@@ -114,14 +114,17 @@ function ActionButtons({
   token,
   onDone,
   initialInProgress = false,
+  initialUnresolved = false,
 }: {
   ids: string[];
   token: string;
   onDone: () => void;
   initialInProgress?: boolean;
+  initialUnresolved?: boolean;
 }) {
   const [busy, setBusy] = useState<"resolved" | "unresolved" | "inprogress" | null>(null);
   const [inProgress, setInProgress] = useState(initialInProgress);
+  const [isUnresolved, setIsUnresolved] = useState(initialUnresolved);
 
   const handleInProgress = async () => {
     setBusy("inprogress");
@@ -180,7 +183,7 @@ function ActionButtons({
           }),
         ),
       );
-      onDone();
+      setIsUnresolved(true);
     } finally {
       setBusy(null);
     }
@@ -209,9 +212,13 @@ function ActionButtons({
         In Progress
       </button>
       <button
-        onClick={handleUnresolved}
+        onClick={isUnresolved ? undefined : handleUnresolved}
         disabled={busy !== null}
-        className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 transition-colors"
+        className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+          isUnresolved
+            ? "bg-red-500 text-white cursor-default ring-2 ring-red-300"
+            : "bg-red-100 text-red-800 hover:bg-red-200"
+        }`}
       >
         {busy === "unresolved" ? <Loader2 className="w-3 h-3 animate-spin" /> : <XCircle className="w-3 h-3" />}
         Unresolved
@@ -318,7 +325,7 @@ function DumpingGroupCard({
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(primary.createdAt)}</span>
-            <ActionButtons ids={allIds} token={token} onDone={() => onClose(allIds)} initialInProgress={primary.closedStatus === "In Progress"} />
+            <ActionButtons ids={allIds} token={token} onDone={() => onClose(allIds)} initialInProgress={primary.closedStatus === "In Progress"} initialUnresolved={primary.closedStatus === "Closed and Unresolved"} />
           </div>
         </div>
         <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
@@ -487,7 +494,7 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
           </div>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             <span className="text-xs text-gray-400">{formatDate(r.createdAt)}</span>
-            <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} initialInProgress={r.closedStatus === "In Progress"} />
+            <ActionButtons ids={[r.id]} token={token} onDone={() => onClose(r.id)} initialInProgress={r.closedStatus === "In Progress"} initialUnresolved={r.closedStatus === "Closed and Unresolved"} />
           </div>
         </div>
         <div className="flex items-center gap-2 mt-1">

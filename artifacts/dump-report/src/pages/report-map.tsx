@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-type ReportStatus = "Reported" | "In Progress" | "Resolved";
+type ReportStatus = "Reported" | "In Progress" | "Resolved" | "Unresolved";
 type FilterStatus = "All" | ReportStatus;
 
 interface MapReport {
@@ -34,6 +34,7 @@ const STATUS_COLORS: Record<ReportStatus, string> = {
   Reported: "#3b82f6",
   "In Progress": "#f59e0b",
   Resolved: "#22c55e",
+  Unresolved: "#ef4444",
 };
 
 function makeColoredIcon(color: string) {
@@ -146,11 +147,12 @@ export default function ReportMap() {
     return () => { cancelled = true; };
   }, []);
 
-  const filters: FilterStatus[] = ["All", "Reported", "In Progress", "Resolved"];
+  const filters: FilterStatus[] = ["All", "Reported", "In Progress", "Unresolved", "Resolved"];
   const filterLabels: Record<FilterStatus, string> = {
     All: t("map_filter_all"),
     Reported: t("map_filter_reported"),
     "In Progress": t("map_filter_in_progress"),
+    Unresolved: "Unresolved",
     Resolved: t("map_filter_resolved"),
   };
 
@@ -281,8 +283,8 @@ export default function ReportMap() {
 
         {/* Legend */}
         {!loading && !error && (
-          <div className="flex items-center gap-4 justify-center mt-3">
-            {(["Reported", "In Progress", "Resolved"] as ReportStatus[]).map((s) => (
+          <div className="flex items-center gap-4 justify-center mt-3 flex-wrap">
+            {(["Reported", "In Progress", "Unresolved", "Resolved"] as ReportStatus[]).map((s) => (
               <div key={s} className="flex items-center gap-1.5">
                 <div
                   className="w-3 h-3 rounded-full flex-shrink-0"
