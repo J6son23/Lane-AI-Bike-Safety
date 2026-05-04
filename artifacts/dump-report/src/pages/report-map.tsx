@@ -48,12 +48,20 @@ function makeColoredIcon(color: string) {
 
 const SAN_JOSE_CENTER: [number, number] = [37.3382, -121.8863];
 
+function appendCity(q: string): string {
+  const lower = q.toLowerCase();
+  if (lower.includes("san jose") || lower.includes(", ca ") || /\b\d{5}\b/.test(q)) return q;
+  return `${q}, San Jose, CA`;
+}
+
+function stripUnit(q: string): string {
+  return q.replace(/\s*[,#]\s*(suite|ste|apt|unit|#)\s*[\w-]+/gi, "").replace(/\s*#[\w-]+/g, "").trim();
+}
+
 async function tryGeocode(q: string): Promise<{ lat: number; lng: number } | null> {
-  const query = encodeURIComponent(`${q}, San Jose, CA`);
+  const query = encodeURIComponent(appendCity(q));
   const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=us`;
-  const res = await fetch(url, {
-    headers: { "Accept-Language": "en" },
-  });
+  const res = await fetch(url, { headers: { "Accept-Language": "en" } });
   if (!res.ok) return null;
   const data: { lat: string; lon: string }[] = await res.json();
   if (!data.length || !data[0].lat) return null;
@@ -62,12 +70,20 @@ async function tryGeocode(q: string): Promise<{ lat: number; lng: number } | nul
 
 async function geocodeLocation(location: string): Promise<{ lat: number; lng: number } | null> {
   try {
+    // 1. Try as-is (with smart city append)
     const result = await tryGeocode(location);
     if (result) return result;
 
-    // Fallback: try with just the first comma-delimited segment
+    // 2. Try without suite/unit number
+    const stripped = stripUnit(location);
+    if (stripped && stripped !== location) {
+      const r2 = await tryGeocode(stripped);
+      if (r2) return r2;
+    }
+
+    // 3. Fallback: first comma-delimited segment
     const firstSegment = location.split(",")[0].trim();
-    if (firstSegment && firstSegment !== location) {
+    if (firstSegment && firstSegment !== location && firstSegment !== stripped) {
       return await tryGeocode(firstSegment);
     }
     return null;
