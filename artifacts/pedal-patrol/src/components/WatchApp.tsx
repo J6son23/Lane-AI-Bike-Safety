@@ -400,25 +400,6 @@ function LocationScreen({
     <div className="flex flex-col h-full animate-in fade-in duration-300 slide-in-from-right-4">
       <Header title="Details" onBack={onBack} />
 
-      {/* Direction picker */}
-      <div className="flex justify-between mb-2 px-0.5">
-        {["N", "S", "E", "W"].map(d => (
-          <button
-            key={d}
-            onClick={() => onUpdate(d, locInput)}
-            className={cn(
-              "w-8 h-8 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors border",
-              state.direction === d
-                ? "bg-primary text-white border-primary"
-                : "bg-white/5 border-white/10 text-gray-300 hover:bg-white/10"
-            )}
-            data-testid={`button-dir-${d.toLowerCase()}`}
-          >
-            {d}
-          </button>
-        ))}
-      </div>
-
       {/* Cross-street input with autocomplete */}
       <div ref={containerRef} className="relative mb-2">
         <div className="bg-white/5 rounded-lg border border-white/10 px-2 py-1.5">
@@ -498,7 +479,7 @@ function LocationScreen({
 
       <button
         onClick={onNext}
-        disabled={!state.direction && !locInput}
+        disabled={!locInput}
         data-testid="button-review-next"
         className="mt-auto bg-primary text-white text-[12px] font-bold py-1.5 px-4 rounded-full disabled:opacity-50 disabled:bg-gray-600 transition-colors w-full"
       >
