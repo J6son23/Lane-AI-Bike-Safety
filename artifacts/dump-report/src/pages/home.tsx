@@ -15,10 +15,11 @@ export default function Home() {
         <div className="absolute top-0 right-0 flex items-center gap-2">
           <button
             onClick={() => navigate("/staff/login")}
-            title={t("home_staff_title")}
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-white shadow-sm hover:shadow-md transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white shadow-sm hover:shadow-md transition-all text-xs font-semibold"
+            style={{ color: "#2d6a2d" }}
           >
-            <ShieldCheck className="w-4 h-4" style={{ color: "#2d6a2d" }} />
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Staff Portal
           </button>
           <LanguageSelector />
         </div>
