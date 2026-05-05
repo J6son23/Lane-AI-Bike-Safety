@@ -345,13 +345,30 @@ function DumpingGroupCard({
   const rest = group.reports.slice(1);
   const allIds = group.reports.map((r) => r.id);
 
+  const firstBullet = primary.aiSummary?.[0]?.toLowerCase() ?? "";
+  const hasObstruction = firstBullet.includes("obstruction");
+  const hasDamage = firstBullet.includes("damage");
+  const isDamage = hasDamage && !hasObstruction;
+  const isBoth = hasDamage && hasObstruction;
+  const isBlue = isDamage || isBoth;
+
+  const borderClass = isBlue ? "border-l-blue-500" : "border-l-emerald-500";
+  const badgeClass = isBlue
+    ? "bg-blue-50 text-blue-700"
+    : "bg-emerald-50 text-emerald-700";
+  const badgeLabel = isBoth
+    ? "Bike Lane Damage & Obstruction"
+    : isDamage
+      ? "Bike Lane Damage"
+      : "Bike Lane Obstruction";
+
   return (
-    <Card className="border-l-4 border-l-emerald-500">
+    <Card className={`border-l-4 ${borderClass}`}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
-              <Bike className="w-3 h-3" /> Bike Lane Obstruction
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${badgeClass} px-2 py-0.5 rounded-full`}>
+              <Bike className="w-3 h-3" /> {badgeLabel}
             </span>
             {isStacked && (
               <button
@@ -468,6 +485,10 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
   const laneBlocked = t["lane_blocked"] as boolean | null;
   const riskToCyclists = t["immediate_risk_to_cyclists"] as boolean | null;
 
+  const isPedalPatrol = t["source"] === "pedal-patrol-watch";
+  const pedalCategory = t["category"] as string | null;
+  const isPedalObstruction = isPedalPatrol && pedalCategory === "Obstruction";
+
   const isDispatched = Boolean(localDispatched);
 
   const handleDispatch = async () => {
@@ -508,12 +529,12 @@ function HazardCard({ r, token, onClose }: { r: HazardReport; token: string; onC
   };
 
   return (
-    <Card className="border-l-4 border-l-blue-500">
+    <Card className={`border-l-4 ${isPedalObstruction ? "border-l-emerald-500" : "border-l-blue-500"}`}>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
-              <AlertTriangle className="w-3 h-3" /> Bike Lane Hazard
+            <span className={`inline-flex items-center gap-1 text-xs font-semibold ${isPedalObstruction ? "bg-emerald-50 text-emerald-700" : "bg-blue-50 text-blue-700"} px-2 py-0.5 rounded-full`}>
+              <AlertTriangle className="w-3 h-3" /> {isPedalPatrol ? "Pedal Patrol" : "Bike Lane Hazard"}
             </span>
             <Badge className={severityColor(severity)}>
               {severity ?? "Unknown"} severity

@@ -16,7 +16,9 @@ import { Building2, Lock } from "lucide-react";
 const PASSCODE = "2978";
 
 function PasscodeGate({ children }: { children: React.ReactNode }) {
-  const [granted, setGranted] = useState(false);
+  const [granted, setGranted] = useState(
+    () => sessionStorage.getItem("passcode_granted") === "true",
+  );
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -29,6 +31,7 @@ function PasscodeGate({ children }: { children: React.ReactNode }) {
 
   const attempt = () => {
     if (value === PASSCODE) {
+      sessionStorage.setItem("passcode_granted", "true");
       setGranted(true);
     } else {
       setError(true);
