@@ -130,6 +130,31 @@ export default function ReportDumping() {
   const [submitting, setSubmitting] = useState(false);
   const [caseNumber, setCaseNumber] = useState("");
   const [ackMessage, setAckMessage] = useState("");
+  const [aiBullets, setAiBullets] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const aiDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current);
+    if (description.trim().length < 10) { setAiBullets([]); return; }
+    aiDebounceRef.current = setTimeout(async () => {
+      setAiLoading(true);
+      try {
+        const res = await fetch("/api/ai/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: description.trim(), reportType: "dumping" }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setAiBullets(Array.isArray(data.bullets) ? data.bullets : []);
+        }
+      } catch { /* silent */ } finally {
+        setAiLoading(false);
+      }
+    }, 900);
+    return () => { if (aiDebounceRef.current) clearTimeout(aiDebounceRef.current); };
+  }, [description]);
 
   const validate = (): boolean => {
     const errs: FormErrors = {};
@@ -275,6 +300,22 @@ export default function ReportDumping() {
                     className={`w-full px-3 py-2.5 text-sm border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-300 bg-gray-50 resize-none ${errors.description ? "border-red-400" : "border-gray-200"}`}
                   />
                   {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
+                  {aiLoading && (
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <Loader2 className="w-3 h-3 animate-spin text-green-600" />
+                      <span className="text-xs text-gray-400">Summarizing…</span>
+                    </div>
+                  )}
+                  {!aiLoading && aiBullets.length > 0 && (
+                    <ul className="mt-2 space-y-1 bg-green-50 border border-green-100 rounded-xl px-3 py-2">
+                      {aiBullets.map((b, i) => (
+                        <li key={i} className="flex items-start gap-1.5 text-xs text-green-900">
+                          <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               </div>
 

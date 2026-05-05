@@ -7,6 +7,7 @@ import dispatchReportRouter from "./dispatch-report";
 import geocodeRouter from "./geocode";
 import reportsMapRouter from "./reports-map";
 import pedalPatrolReportRouter from "./pedal-patrol-report";
+import aiSummarizeRouter from "./ai-summarize";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(dispatchReportRouter);
 router.use(geocodeRouter);
 router.use(reportsMapRouter);
 router.use(pedalPatrolReportRouter);
+router.use(aiSummarizeRouter);
 
 export default router;
