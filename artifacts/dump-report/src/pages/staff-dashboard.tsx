@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -224,7 +224,25 @@ function BooleanBadge({ value, label }: { value: unknown; label: string }) {
 }
 
 function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean }) {
-  const [expanded, setExpanded] = useState(false);
+  const [aiBullets, setAiBullets] = useState<string[]>([]);
+  const [aiLoading, setAiLoading] = useState(false);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (fetchedRef.current || !r.description || r.description.trim().length < 10) return;
+    fetchedRef.current = true;
+    setAiLoading(true);
+    fetch("/api/ai/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ description: r.description.trim(), reportType: "dumping" }),
+    })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data?.bullets) setAiBullets(data.bullets); })
+      .catch(() => {})
+      .finally(() => setAiLoading(false));
+  }, [r.description]);
+
   return (
     <div className={nested ? "border-t border-gray-100 pt-3 mt-3" : ""}>
       <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -239,7 +257,6 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
       {nested && (
         <p className="text-xs text-gray-500 mt-0.5">{r.location}</p>
       )}
-      <p className="text-sm text-gray-700 leading-relaxed mt-1">{r.description}</p>
 
       {r.photoBase64 ? (
         <img
@@ -254,19 +271,25 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
         </div>
       )}
 
-      {r.ackMessage && (
-        <div className="mt-2">
-          <button
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
-            onClick={() => setExpanded((p) => !p)}
-          >
-            {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            Resident acknowledgment
-          </button>
-          {expanded && (
-            <p className="mt-1 text-sm text-gray-600 italic pl-4 border-l-2 border-gray-200">
-              {r.ackMessage}
-            </p>
+      {r.description && (
+        <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 space-y-1.5">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">User Input Text</p>
+          <p className="text-sm text-gray-700 leading-relaxed">{r.description}</p>
+          {aiLoading && (
+            <div className="flex items-center gap-1.5 pt-0.5">
+              <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+              <span className="text-xs text-gray-400">Summarizing…</span>
+            </div>
+          )}
+          {!aiLoading && aiBullets.length > 0 && (
+            <ul className="pt-1 space-y-1 border-t border-gray-200">
+              {aiBullets.map((b, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-emerald-800">
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                  {b}
+                </li>
+              ))}
+            </ul>
           )}
         </div>
       )}

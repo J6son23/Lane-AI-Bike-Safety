@@ -16,7 +16,7 @@ const BodySchema = zod.object({
   reportType: zod.enum(["dumping", "hazard"]),
 });
 
-router.post("/api/ai/summarize", async (req, res) => {
+router.post("/ai/summarize", async (req, res) => {
   const parsed = BodySchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid input" });
@@ -40,23 +40,26 @@ No markdown, no explanation — just the raw JSON array.`;
   try {
     const client = getClient();
     const completion = await client.chat.completions.create({
-      model: "gpt-5-nano",
+      model: "gpt-5-mini",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: description },
       ],
-      max_tokens: 150,
-      temperature: 0.3,
     });
 
-    const raw = completion.choices[0]?.message?.content?.trim() ?? "[]";
+    const rawContent = completion.choices[0]?.message?.content?.trim() ?? "";
     let bullets: string[] = [];
     try {
-      bullets = JSON.parse(raw);
-      if (!Array.isArray(bullets)) bullets = [];
-      bullets = bullets.slice(0, 3).map((b) => String(b));
+      // Strip markdown code fences if present
+      const cleaned = rawContent.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+      const parsed = JSON.parse(cleaned);
+      if (Array.isArray(parsed)) {
+        bullets = parsed.slice(0, 3).map((b) => String(b));
+      }
     } catch {
-      bullets = [];
+      // Fallback: extract lines that look like bullet content
+      const lines = rawContent.split("\n").map((l) => l.replace(/^[-•*\d.]+\s*/, "").trim()).filter(Boolean);
+      bullets = lines.slice(0, 3);
     }
 
     res.json({ bullets });
