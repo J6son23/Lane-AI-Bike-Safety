@@ -32,7 +32,10 @@ router.post("/ai/summarize", async (req, res) => {
 
   const systemPrompt = `You are a city public-works assistant that summarizes citizen ${typeContext}s.
 Given the user's free-text description, produce exactly 2-3 concise bullet points:
-- Bullet 1: The type of issue (must be one of: Damage, Obstruction, or both — e.g. "Type: Obstruction")
+- Bullet 1: The type of issue — classify using these exact rules:
+  * "Type: Damage" — structural damage to the road surface (potholes, cracking, broken pavement), OR large immovable objects such as fallen trees or boulders that cannot be removed even by a crew.
+  * "Type: Obstruction" — any object, vehicle, or debris on the lane that CAN be removed (even if it takes a city crew or group of people): parked/abandoned cars, dumped furniture, garbage bags, construction materials, shopping carts, small debris, etc. Trees and boulders are NOT obstructions.
+  * "Type: Damage & Obstruction" — only if both clearly apply (e.g. a vehicle crash that also damaged the road surface).
 - Bullet 2-3: Key context from the description (location detail, severity, what is affected, etc.)
 Return ONLY a JSON array of strings, e.g. ["Type: Obstruction", "Abandoned vehicle blocking bike lane", "Reported near intersection"].
 No markdown, no explanation — just the raw JSON array.`;
