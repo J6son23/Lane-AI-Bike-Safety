@@ -292,8 +292,8 @@ function DamageTypeScreen({ onSelect, onBack }: { onSelect: (label: string) => v
         <Tile
           small
           icon={<Brush className="w-4 h-4 text-gray-300" />}
-          label="Faded paint"
-          onClick={() => onSelect("Faded paint")}
+          label="Road Flooding"
+          onClick={() => onSelect("Road Flooding")}
           testId="tile-damage-paint"
         />
       </div>
