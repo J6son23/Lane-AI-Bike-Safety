@@ -33,6 +33,7 @@ type DumpingReport = {
   ackMessage: string | null;
   photoBase64: string | null;
   closedStatus: string | null;
+  aiSummary: string[] | null;
   createdAt: string;
 };
 
@@ -223,12 +224,15 @@ function BooleanBadge({ value, label }: { value: unknown; label: string }) {
   );
 }
 
-function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean }) {
-  const [aiBullets, setAiBullets] = useState<string[]>([]);
+function DumpingReportRow({ r, nested, token }: { r: DumpingReport; nested?: boolean; token: string }) {
+  const [aiBullets, setAiBullets] = useState<string[]>(r.aiSummary ?? []);
   const [aiLoading, setAiLoading] = useState(false);
+  const [inputOpen, setInputOpen] = useState(false);
   const fetchedRef = useRef(false);
 
   useEffect(() => {
+    // Skip if already cached from backend
+    if (r.aiSummary && r.aiSummary.length > 0) return;
     if (fetchedRef.current || !r.description || r.description.trim().length < 10) return;
     fetchedRef.current = true;
     setAiLoading(true);
@@ -238,10 +242,20 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
       body: JSON.stringify({ description: r.description.trim(), reportType: "dumping" }),
     })
       .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data?.bullets) setAiBullets(data.bullets); })
+      .then((data) => {
+        if (data?.bullets?.length) {
+          setAiBullets(data.bullets);
+          // Persist to backend so it's never regenerated
+          fetch("/api/staff/save-ai-summary", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ id: r.id, bullets: data.bullets }),
+          }).catch(() => {});
+        }
+      })
       .catch(() => {})
       .finally(() => setAiLoading(false));
-  }, [r.description]);
+  }, [r.aiSummary, r.description, r.id, token]);
 
   return (
     <div className={nested ? "border-t border-gray-100 pt-3 mt-3" : ""}>
@@ -271,25 +285,44 @@ function DumpingReportRow({ r, nested }: { r: DumpingReport; nested?: boolean })
         </div>
       )}
 
+      {/* AI Summary — always visible */}
+      <div className="mt-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">AI Summary</p>
+        {aiLoading && (
+          <div className="flex items-center gap-1.5">
+            <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
+            <span className="text-xs text-gray-400">Summarizing…</span>
+          </div>
+        )}
+        {!aiLoading && aiBullets.length > 0 && (
+          <ul className="space-y-1">
+            {aiBullets.map((b, i) => (
+              <li key={i} className="flex items-start gap-1.5 text-xs text-emerald-900">
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                {b}
+              </li>
+            ))}
+          </ul>
+        )}
+        {!aiLoading && aiBullets.length === 0 && (
+          <p className="text-xs text-gray-400 italic">No summary available</p>
+        )}
+      </div>
+
+      {/* User Input Text — collapsible */}
       {r.description && (
-        <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5 space-y-1.5">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">User Input Text</p>
-          <p className="text-sm text-gray-700 leading-relaxed">{r.description}</p>
-          {aiLoading && (
-            <div className="flex items-center gap-1.5 pt-0.5">
-              <Loader2 className="w-3 h-3 animate-spin text-emerald-600" />
-              <span className="text-xs text-gray-400">Summarizing…</span>
-            </div>
-          )}
-          {!aiLoading && aiBullets.length > 0 && (
-            <ul className="pt-1 space-y-1 border-t border-gray-200">
-              {aiBullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-1.5 text-xs text-emerald-800">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                  {b}
-                </li>
-              ))}
-            </ul>
+        <div className="mt-1.5">
+          <button
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            onClick={() => setInputOpen((p) => !p)}
+          >
+            {inputOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            User Input Text
+          </button>
+          {inputOpen && (
+            <p className="mt-1 text-sm text-gray-600 leading-relaxed pl-4 border-l-2 border-gray-200">
+              {r.description}
+            </p>
           )}
         </div>
       )}
@@ -339,12 +372,12 @@ function DumpingGroupCard({
         <p className="text-sm font-medium text-gray-800 mt-1">{primary.location}</p>
       </CardHeader>
       <CardContent className="space-y-3">
-        <DumpingReportRow r={primary} />
+        <DumpingReportRow r={primary} token={token} />
 
         {isStacked && stackOpen && (
           <div className="bg-gray-50 rounded-lg p-3 space-y-0">
             {rest.map((r) => (
-              <DumpingReportRow key={r.id} r={r} nested />
+              <DumpingReportRow key={r.id} r={r} nested token={token} />
             ))}
           </div>
         )}

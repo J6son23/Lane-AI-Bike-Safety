@@ -51,6 +51,7 @@ router.get("/staff/reports", requireAuth, async (req, res) => {
       ackMessage: r.ackMessage,
       photoBase64: r.photoBase64,
       closedStatus: r.closedStatus,
+      aiSummary: r.aiSummary ? (() => { try { return JSON.parse(r.aiSummary as string) as string[]; } catch { return null; } })() : null,
       createdAt: r.createdAt,
     }));
 
@@ -147,6 +148,29 @@ router.delete("/staff/purge-resolved", requireAuth, async (req, res) => {
   } catch (err) {
     req.log.error({ err }, "Failed to purge resolved reports");
     res.status(500).json({ error: "Failed to purge resolved reports" });
+  }
+});
+
+router.post("/staff/save-ai-summary", requireAuth, async (req, res) => {
+  const { id, bullets } = req.body ?? {};
+  if (!id || !Array.isArray(bullets)) {
+    res.status(400).json({ error: "id and bullets[] are required" });
+    return;
+  }
+  if (!id.startsWith("dumping-")) {
+    res.status(400).json({ error: "Only dumping reports support AI summary caching" });
+    return;
+  }
+  const numericId = Number(id.slice("dumping-".length));
+  try {
+    await db
+      .update(dumpingReportsTable)
+      .set({ aiSummary: JSON.stringify(bullets) })
+      .where(eq(dumpingReportsTable.id, numericId));
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to save AI summary");
+    res.status(500).json({ error: "Failed to save summary" });
   }
 });
 
