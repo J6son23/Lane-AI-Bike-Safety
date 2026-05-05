@@ -52,24 +52,9 @@ type HazardReport = {
 
 type Report = DumpingReport | HazardReport;
 
-/** Normalize a location string for comparison */
-function normalizeLocation(loc: string): string[] {
-  return loc
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, " ")
-    .split(/\s+/)
-    .filter((w) => w.length >= 3);
-}
-
-/** Returns true if two location strings are "near" each other (share ≥2 meaningful tokens) */
+/** Returns true only if two location strings are identical (case-insensitive, whitespace-normalised) */
 function locationsMatch(a: string, b: string): boolean {
-  const tokensA = new Set(normalizeLocation(a));
-  const tokensB = new Set(normalizeLocation(b));
-  let shared = 0;
-  for (const t of tokensA) {
-    if (tokensB.has(t)) shared++;
-  }
-  return shared >= 2;
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
 type LocationGroup = {
