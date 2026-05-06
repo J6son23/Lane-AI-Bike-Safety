@@ -202,7 +202,10 @@ export default function HazardTriage() {
           <h1 className="text-2xl font-bold" style={{ color: "#1a3a1a" }}>{t("hazard_success_title")}</h1>
           {report?._case_number && (
             <div className="bg-white rounded-2xl shadow-sm p-4 space-y-1">
-              <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Case Number</p>
+              <div className="flex items-center justify-center gap-2">
+                <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Case Number</p>
+                <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">Copy to clipboard</span>
+              </div>
               <div className="font-mono text-2xl font-bold tracking-widest" style={{ color: "#2d6a2d" }}>
                 {report._case_number}
               </div>
