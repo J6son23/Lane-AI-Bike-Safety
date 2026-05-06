@@ -15,7 +15,7 @@ const en = {
   home_subtitle: "Select a service to get started.",
   home_dumping_title: "Report Bike Lane Obstruction",
   home_dumping_desc: "Report obstructions blocking bike lanes",
-  home_analyze_title: "Analyze Photo",
+  home_analyze_title: "Upload Image Here",
   home_analyze_desc: "AI-powered bike lane hazard triage for staff",
   home_staff_title: "Staff Portal",
   home_staff_desc: "City staff only — view all submitted reports",
