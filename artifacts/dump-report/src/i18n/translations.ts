@@ -16,7 +16,7 @@ const en = {
   home_dumping_title: "Report With Text",
   home_dumping_desc: "Report obstructions blocking bike lanes",
   home_analyze_title: "Upload Image Here",
-  home_analyze_desc: "AI-powered bike lane hazard triage for staff",
+  home_analyze_desc: "Upload Image to Start a Report",
   home_staff_title: "Staff Portal",
   home_staff_desc: "City staff only — view all submitted reports",
   home_footer: "Reports are reviewed within 1–2 business days.",
