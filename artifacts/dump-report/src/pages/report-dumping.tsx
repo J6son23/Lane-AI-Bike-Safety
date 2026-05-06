@@ -344,7 +344,10 @@ export default function ReportDumping() {
             <h2 className="text-2xl font-extrabold" style={{ color: "#1a3a1a" }}>{t("dumping_done_title")}</h2>
             <div className="bg-white rounded-2xl shadow-sm w-full p-5 space-y-4">
               <div className="space-y-1">
-                <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">{t("dumping_done_case")}</p>
+                <div className="flex items-center justify-center gap-2">
+                  <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">{t("dumping_done_case")}</p>
+                  <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full border border-gray-200">Copy to clipboard</span>
+                </div>
                 <div className="font-mono text-2xl font-bold tracking-widest" style={{ color: "#2d6a2d" }}>
                   {caseNumber}
                 </div>
