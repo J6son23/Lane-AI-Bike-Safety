@@ -41,12 +41,6 @@ function Home() {
             </div>
             <div className="flex items-start gap-3">
               <div className="bg-primary/20 p-1.5 rounded text-primary mt-0.5">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
-              </div>
-              <p><strong>Works offline.</strong> Reports are saved locally and synced when you have connection.</p>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-primary/20 p-1.5 rounded text-primary mt-0.5">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
               </div>
               <p><strong>Designed for motion.</strong> Big tap targets, voice input, one-touch submission.</p>
