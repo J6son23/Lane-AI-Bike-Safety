@@ -202,7 +202,7 @@ function HomeScreen({ onEnter }: { onEnter: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center h-full animate-in fade-in duration-300 zoom-in-95">
       <BadgeLogo className="w-10 h-10 text-white mb-2" />
-      <h1 className="text-[14px] font-bold tracking-tight mb-1 text-center">Pedal Patrol</h1>
+      <h1 className="font-bold tracking-tight mb-1 text-center text-[16px]">Pedal Patrol</h1>
       <p className="text-[11px] text-gray-400 text-center leading-tight mb-4 px-2">
         Report bike lane hazards.
       </p>
