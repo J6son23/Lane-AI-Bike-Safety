@@ -22,6 +22,7 @@ interface MapReport {
   type: "dumping" | "hazard";
   location: string;
   description: string;
+  aiSummary?: string[] | null;
   status: ReportStatus;
 }
 
@@ -270,7 +271,18 @@ export default function ReportMap() {
                       </div>
                       <div>
                         <span className="font-semibold text-gray-500 uppercase text-xs">{t("map_popup_desc")}: </span>
-                        <span className="text-gray-700">{r.description}</span>
+                        {r.aiSummary && r.aiSummary.length > 0 ? (
+                          <ul className="mt-0.5 space-y-0.5">
+                            {r.aiSummary.map((b, i) => (
+                              <li key={i} className="flex items-start gap-1 text-gray-700">
+                                <span className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                                <span>{b}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <span className="text-gray-700">{r.description}</span>
+                        )}
                       </div>
                       <div className="text-xs text-gray-400 pt-0.5">{r.location}</div>
                     </div>

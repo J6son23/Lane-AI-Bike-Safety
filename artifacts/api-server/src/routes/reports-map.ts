@@ -22,6 +22,7 @@ router.get("/reports/map", async (req, res) => {
           id: dumpingReportsTable.id,
           location: dumpingReportsTable.location,
           description: dumpingReportsTable.description,
+          aiSummary: dumpingReportsTable.aiSummary,
           closedStatus: dumpingReportsTable.closedStatus,
           createdAt: dumpingReportsTable.createdAt,
         })
@@ -45,6 +46,7 @@ router.get("/reports/map", async (req, res) => {
       type: "dumping" as const,
       location: r.location,
       description: r.description,
+      aiSummary: r.aiSummary ? (() => { try { return JSON.parse(r.aiSummary as string) as string[]; } catch { return null; } })() : null,
       status: deriveStatus(null, r.closedStatus),
     }));
 
