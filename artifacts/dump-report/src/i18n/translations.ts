@@ -13,7 +13,7 @@ const en = {
   home_community: "Community Services",
   home_title: "City Services",
   home_subtitle: "Select a service to get started.",
-  home_dumping_title: "Report Bike Lane Obstruction",
+  home_dumping_title: "Report With Text",
   home_dumping_desc: "Report obstructions blocking bike lanes",
   home_analyze_title: "Upload Image Here",
   home_analyze_desc: "AI-powered bike lane hazard triage for staff",
