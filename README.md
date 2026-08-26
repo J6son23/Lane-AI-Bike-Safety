@@ -1,6 +1,6 @@
 # Lane AI
 
-![Lane AI Demo](assets/demo.gif)
+![Lane AI Demo](demo.gif)
 
 ## Overview
 
