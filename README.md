@@ -1,6 +1,6 @@
 # Lane AI
 
-![Lane AI Demo](/demo.gif)
+![Alt Text](/demo.gif)
 
 ## Overview
 
