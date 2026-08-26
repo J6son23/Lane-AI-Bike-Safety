@@ -1,97 +1,59 @@
-Lane AI
+# Lane AI
 
-An AI-powered bike-lane safety reporting prototype designed to help San Jose residents report hazards and help city staff prioritize appropriate responses.
+![Lane AI Demo](/demo.gif)
 
-Overview
+## Overview
 
-Lane AI allows residents to submit a photo and written description of a bike-lane hazard. The prototype uses AI to identify the issue, assign a priority level, and suggest a city response. It was developed as part of an MBA consulting project focused on strategic and responsible AI innovation for the public good.
+An AI-powered bike-lane safety reporting app that helps San Jose residents report hazards through photos and written descriptions. The app analyzes each submission, identifies the issue, assigns a priority level, and suggests an appropriate city response.
 
-What Is Lane AI?
+## What Is Lane AI?
 
-Lane AI combines the project's focus on safer bike lanes with its use of artificial intelligence.
+**Lane AI**
 
-The name represents a system intended to make bike-lane hazard reporting more accessible, understandable, and actionable. Instead of requiring residents to navigate a complicated reporting process, Lane AI helps translate an informal report into structured information that city transportation staff can review.
+Our project name combines our mission of improving bike-lane safety with the use of artificial intelligence. **“Lane”** represents the bike lanes the project aims to make safer, while **“AI”** represents the technology used to analyze and organize resident reports.
 
-Why Lane AI?
+Lane AI is designed to make hazard reporting more accessible, understandable, and actionable for both residents and city transportation staff.
 
-Blocked or unsafe bike lanes can force cyclists into vehicle traffic, cause riders to change routes, and create stressful or dangerous travel conditions. These hazards may remain unresolved when residents do not know how to report them or face language, accessibility, or technology barriers.
+## Why Lane AI?
 
-Lane AI was designed around the needs of residents who may be less familiar with digital reporting tools, including older adults and people with limited English proficiency. The project aims to:
+Blocked or unsafe bike lanes can force cyclists into vehicle traffic, cause riders to change routes, and create dangerous travel conditions. These hazards may remain unresolved when residents do not know how to report them or face language, accessibility, or technology barriers.
 
-Make bike-lane hazard reporting easier and more accessible
+Lane AI offers:
 
-Help residents communicate hazards through photos and plain-language descriptions
+- Photo and text-based bike-lane hazard reporting
+- AI-assisted identification of obstructions and safety issues
+- Priority-level classification for submitted reports
+- Suggested city responses based on the reported hazard
+- A simpler reporting workflow for residents
+- Better visibility into recurring hazards for city transportation staff
 
-Give city staff better visibility into where and when safety issues occur
+## The Solution
 
-Organize reports by issue type, location, and priority
+We developed an AI-assisted reporting prototype that helps residents communicate bike-lane safety issues and helps city staff organize incoming reports. It has four main functions:
 
-Support faster and more consistent review of reported hazards
+1. A reporting interface that allows residents to upload a photo and written description of a bike-lane hazard.
+2. An AI image-analysis feature that identifies the likely obstruction or safety issue.
+3. A prioritization feature that classifies the report and suggests an appropriate city response.
+4. A staff-facing workflow that allows city personnel to review the report and determine the next action.
 
-The Solution
+Through AI-assisted analysis and a human-centered design approach, Lane AI aims to reduce barriers to reporting and give the City of San Jose better visibility into unsafe bike-lane conditions. The prototype supports city staff decision-making while keeping people responsible for validating reports and approving real-world actions.
 
-We developed and published a prototype that demonstrates an AI-assisted reporting workflow:
+## Responsible AI
 
-A resident uploads a photo of a bike-lane hazard and enters a written description.
+We tested the prototype for trust, privacy, and escalation risks using the TRACE red-teaming framework. Testing showed that unclear images could produce overconfident classifications, submitted photos could expose sensitive information, and duplicate reports could create unnecessary alerts.
 
-The AI analyzes the submission and identifies the likely obstruction or safety issue.
+Recommended safeguards include:
 
-The system assigns a priority level and recommends an appropriate city response.
+- Uncertainty warnings for low-confidence results
+- Human review before action is taken
+- Restricted access to sensitive report details
+- Masking of addresses, license plates, and identifiable people
+- Duplicate-report detection
 
-City staff review the report and determine the next action.
+## Project Context
 
-The prototype is intended to support human decision-making—not replace it. City personnel remain responsible for validating reports, reviewing uncertain results, and deciding how to respond.
+Lane AI was developed for **BUS 297D: Strategic AI Innovation for Business and Society** at San Jose State University during Spring 2026. The project was completed as a public-sector consulting simulation focused on applying strategic, human-centered, and responsible AI to a civic challenge.
 
-Key Features
+## Disclaimer
 
-Photo and text-based hazard reporting
-
-AI-assisted hazard identification
-
-Priority-level classification
-
-Suggested city response
-
-Resident-facing reporting workflow
-
-Staff-oriented report review
-
-Human-review recommendations for uncertain submissions
-
-Responsible AI and Red-Team Testing
-
-We evaluated Lane AI using the TRACE red-teaming framework, focusing on trust, access, and escalation risks. Testing identified several important failure modes:
-
-Overconfident classifications: Blurry or unclear images could be incorrectly labeled as high-priority hazards.
-
-Sensitive-data exposure: Photos and reports could contain exact addresses, license plates, people, or other identifiable information.
-
-Duplicate escalation: Multiple submissions of the same hazard could generate redundant high-priority alerts.
-
-Recommended safeguards include uncertainty warnings, human review for low-confidence results, restricted access to sensitive report details, masking of identifiable information, and duplicate-report detection.
-
-Human-Centered Design
-
-The project used stakeholder analysis, user personas, needs statements, and journey mapping to understand where the current reporting experience breaks down. The solution was designed around two primary stakeholder groups:
-
-Residents who encounter unsafe bike-lane conditions, particularly those facing language or technology barriers
-
-City transportation staff who need reliable community reports to identify recurring hazards and coordinate responses
-
-Project Context
-
-Lane AI was created for BUS 297D: Strategic AI Innovation for Business and Society at San Jose State University during Spring 2026. The course was structured as a public-sector consulting simulation in which teams evaluated a civic challenge, designed an AI-enabled solution, assessed feasibility and governance risks, built a working prototype, and prepared a strategic recommendation for City of San Jose and industry stakeholders.
-
-Team
-
-Laszlo Szieben
-
-Jonathan Wang
-
-Jitaditya Paul
-
-Mai Phan
-
-Disclaimer
-
-Lane AI is an educational prototype and has not been deployed or endorsed by the City of San Jose. Its classifications and recommendations should not be used to make real-world safety or enforcement decisions without validation, human oversight, privacy protections, and additional technical testing.
+Lane AI is an educational prototype and has not been deployed or endorsed by the City of San Jose. Its classifications and recommendations should not be used for real-world safety or enforcement decisions without validation, human oversight, privacy protections, and additional testing.
